@@ -1067,8 +1067,16 @@ func (m *mayoi) settle(wins []*desktop, quit bool, done, cancelled func()) {
 func (m *mayoi) openWindow(st *settings.Window) *desktop {
 	h := &desktop{m: m}
 	a := newApp(h, m.s, st)
-	// A workspace of the app the user runs shows its terminal first.
+	// A workspace of the app the user runs shows its terminal first, and
+	// starts it now, so that the workspace panel lists the terminals of
+	// the workspaces it does not show too.
 	a.terminalFirst, a.centerTerm = true, true
+	if a.folder() != "" {
+		// The view's first frame would start it otherwise, a second
+		// time.
+		a.started = true
+		a.start()
+	}
 	a.keys = m.keys
 	h.a = a
 	if m.s.ProjectTabs && len(m.wins) > 0 && m.wins[0].f != nil {

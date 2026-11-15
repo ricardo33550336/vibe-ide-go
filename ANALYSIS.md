@@ -389,3 +389,11 @@ P1 的成功标准（spike）：
 - 新终端默认命名为 `Terminal 1`、`Terminal 2`…（按工作区内去重），与 vibe-ide 一致；仍可通过右键重命名。
 - 新增测试 `TestWorkspaceTerminalTakesKeys`：在中心终端输入 `echo MARK`，校验输出回显。
 - 全量 `go test -short ./cmd/mayoi` 只剩原仓库基线的 `hc attach` 两个环境失败；依赖 Remote SSH 菜单的测试按产品范围跳过。
+
+### P2.1 面板可调与工作区预热
+
+- 左侧工作区面板宽度可拖拽（180–420），写入 `settings.json` 的 `workspaceWidth`。
+- 工作区在启动时就启动自己的终端，不只等切换到它：这样左栏能立即列出每个工作区的真实终端，切换时也有历史输出。
+  - 通过 `openWindow` 中提前 `a.start()` 并设置 `a.started`，避免首帧再次启动造成双份 shell。
+  - 隐藏工作区的编辑器仍由 Mayoi 的 park 机制延迟恢复。
+- `Ctrl+`` 在终端/编辑器之间切换，不再打开底部面板；本产品不显示 Mayoi 的终端面板。

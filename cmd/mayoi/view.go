@@ -120,7 +120,7 @@ func (a *app) view(c *ui.Context) {
 			// The panel is at the window's edge, past the sidebar, so
 			// that with both on a side the panel is the outer one.
 			side := ""
-			if w.PanelOpen && !a.centerTerm {
+			if w.PanelOpen && !a.centerTerm && !a.terminalFirst {
 				side = a.panelSide()
 			}
 			sidebar := func() {
@@ -1834,16 +1834,20 @@ func (a *app) toggleSidebarRight() {
 // togglePanel shows or hides the terminal panel, starting a terminal the
 // first time it shows.
 func (a *app) togglePanel() {
-	// With terminals in the center, the button switches between the
-	// terminal and the editors, as vibe-ide's does.
-	if a.terminalFirst && a.centerTerm {
-		a.centerTerm = false
-		a.focusColumn()
-		return
-	}
-	if a.terminalFirst && !a.window.PanelOpen && a.ensurePanelTerm() != nil {
-		a.centerTerm = true
-		a.focusTerminal()
+	// A workspace of this app shows its terminal in the center, so the
+	// button switches between the terminal and the editors, as vibe-ide's
+	// does, and the bottom panel stays away.
+	if a.terminalFirst {
+		a.centerTerm = !a.centerTerm
+		if a.centerTerm {
+			if a.ensurePanelTerm() == nil && a.root != "" {
+				a.newTerminalIn(a.workDir())
+				return
+			}
+			a.focusTerminal()
+		} else {
+			a.focusColumn()
+		}
 		return
 	}
 	w := a.window
