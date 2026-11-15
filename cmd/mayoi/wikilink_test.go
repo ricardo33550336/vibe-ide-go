@@ -1,0 +1,230 @@
+package main
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+func TestWikiLinkAt(t *testing.T) {
+	for _, c := range []struct {
+		s    string
+		want wikiLink
+		n    int
+	}{
+		{"[[note]] after", wikiLink{target: "note"}, 8},
+		{"[[王健康/评估|王健康]]、", wikiLink{target: "王健康/评估", label: "王健康"}, len("[[王健康/评估|王健康]]")},
+		{"[[note#Some heading|label]]", wikiLink{target: "note", heading: "Some heading", label: "label"}, 27},
+		{"[[#Heading]]", wikiLink{heading: "Heading"}, 12},
+		{`[[note\|label]]`, wikiLink{target: "note", label: "label"}, 15},
+		{"![[pic.png|300]]", wikiLink{target: "pic.png", label: "300", embed: true}, 16},
+		{"[[]]", wikiLink{}, 0},
+		{"[[a]b]]", wikiLink{}, 0},
+		{"[[open", wikiLink{}, 0},
+		{"[note]", wikiLink{}, 0},
+		{"![pic](a.png)", wikiLink{embed: true}, 0},
+	} {
+		l, n := wikiLinkAt(c.s)
+		if n != c.n || n > 0 && l != c.want {
+			t.Errorf("%q: got %+v %d, want %+v %d", c.s, l, n, c.want, c.n)
+		}
+	}
+}
+
+func TestWikiLinkIn(t *testing.T) {
+	line := "见 [[王健康/评估|王健康]] 和 [[b]]"
+	for at, want := range map[int]string{0: "", 2: "王健康/评估", 10: "王健康/评估", 16: "王健康/评估", 17: "", 19: "b", 24: "b"} {
+		l, ok := wikiLinkIn(line, at)
+		if ok != (want != "") || l.target != want {
+			t.Errorf("at %d: got %q %v, want %q", at, l.target, ok, want)
+		}
+	}
+}
+
+func TestMarkdownWikiLinks(t *testing.T) {
+	root := t.TempDir()
+	write := func(rel, s string) string {
+		p := filepath.Join(root, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(s), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+	path := write("daily/today.md", "")
+	write("daily/near.md", "")
+	write("top.md", "")
+	write("people/王健康/评估.md", "")
+	write("deep/a/b/王健康/评估.md", "")
+	write("Notes/Mixed Case.md", "")
+	write(".hidden/secret.md", "")
+	write("assets/.keep", "")
+	writePNG(t, filepath.Join(root, "assets", "art.png"), 80, 40)
+
+	source := "[[near]] [[top]] [[王健康/评估|王健康]] [[mixed case#Some Heading]] [[missing|gone]] [[secret]] [[#Local Heading]] `[[code]]`"
+	var got strings.Builder
+	for _, r := range parseMarkdown([]byte(source), path, root, nil)[0].runs {
+		if r.link != "" {
+			got.WriteString("[" + r.text + "](" + r.link + ")")
+		} else {
+			got.WriteString(r.text)
+		}
+	}
+	want := "[near](near.md) [top](../top.md) [王健康](../people/%E7%8E%8B%E5%81%A5%E5%BA%B7/%E8%AF%84%E4%BC%B0.md) " +
+		"[mixed case > Some Heading](../Notes/Mixed%20Case.md#Some%20Heading) gone [secret](../.hidden/secret.md) [Local Heading](#local-heading) [[code]]"
+	if got.String() != want {
+		t.Fatalf("got\n%s\nwant\n%s", got.String(), want)
+	}
+	// Each destination opens the file found.
+	if p := markdownPath(root, path, "../people/%E7%8E%8B%E5%81%A5%E5%BA%B7/%E8%AF%84%E4%BC%B0.md"); p != filepath.Join(root, "people", "王健康", "评估.md") {
+		t.Fatalf("destination resolves to %q", p)
+	}
+
+	// An embedded picture shows, as wide as its size says.
+	blocks := parseMarkdown([]byte("![[art.png|40]] ![[art.png]] ![[top]]"), path, root, nil)
+	var runs []markdownInline
+	for _, b := range blocks {
+		runs = append(runs, b.runs...)
+	}
+	if len(runs) < 3 || runs[0].bitmap == nil || runs[0].w != 40 || runs[0].h != 20 || runs[1].bitmap == nil || runs[1].w != 80 {
+		t.Fatalf("embedded pictures: %+v", runs)
+	}
+	if last := runs[len(runs)-1]; last.text != "top" || last.link != "../top.md" {
+		t.Fatalf("embedded note: %+v", last)
+	}
+}
+
+func TestMarkdownHeadingLine(t *testing.T) {
+	source := []byte("---\ntitle: x\n---\n# Top\n\n```\n# not a heading\n```\n\n## Some **Heading**\n\nText\n\nSetext\n---\n\n## Top\n")
+	for heading, want := range map[string]int{"Some Heading": 9, "some-heading": 9, "Setext": 13, "Top": 3, "top-1": 16, "nope": -1} {
+		if got := markdownHeadingLine(source, heading); got != want {
+			t.Errorf("%q: got line %d, want %d", heading, got, want)
+		}
+	}
+
+	// A#B is heading B under heading A; ^id the block marked so.
+	source = []byte("# A\n\n## Notes\n\n# B\n\n## Notes\n\nA line. ^line\n\n- one\n- two\n\n^list\n")
+	for heading, want := range map[string]int{"B#Notes": 6, "A#Notes": 2, "Notes": 2, "A#Nope": -1, "B#A": -1, "^line": 8, "^list": 10, "^nope": -1} {
+		if got := markdownHeadingLine(source, heading); got != want {
+			t.Errorf("%q: got line %d, want %d", heading, got, want)
+		}
+	}
+}
+
+func TestWikiLinkNested(t *testing.T) {
+	if l, _ := wikiLinkAt("[[note#A#B]]"); l.heading != "A#B" || l.text() != "note > A > B" {
+		t.Errorf("nested heading: %+v shows %q", l, l.text())
+	}
+	path := filepath.Join("/notes", "day.md")
+	if got := wikiLinkDest(path, "", "A#B"); got != "day.md#A%23B" {
+		t.Errorf("a heading under another of the note itself goes to %q", got)
+	}
+	if got := wikiLinkDest(path, "", "Plain"); got != "#plain" {
+		t.Errorf("a heading of the note itself goes to %q", got)
+	}
+	for target, want := range map[string]string{
+		"Missing":        filepath.Join("/notes", "Missing.md"),
+		"sub/Missing":    filepath.Join("/notes", "sub", "Missing.md"),
+		"v1.2":           filepath.Join("/notes", "v1.2.md"),
+		"Done.md":        filepath.Join("/notes", "Done.md"),
+		"pic.png":        "",
+		"../outside":     "",
+		"/abs/elsewhere": "",
+	} {
+		if got := wikiLinkNew(path, target); got != want {
+			t.Errorf("a link to %q makes %q, want %q", target, got, want)
+		}
+	}
+}
+
+func TestWikiLinkVault(t *testing.T) {
+	top := t.TempDir()
+	vault := filepath.Join(top, "vault")
+	write := func(rel string) string {
+		p := filepath.Join(top, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+	write("vault/.obsidian/app.json")
+	write("vault/repo/.git/HEAD")
+	note := write("vault/repo/daily/today.md")
+	write("vault/People/Ada.md")
+	write("vault/a/b/c/today2.md")
+	write("vault/repo/daily/Near.md")
+	write("vault/z/near.md")
+	write("vault/.trash/gone.md")
+	digest := write("vault/.claude/skills/digest/digests/131840003151/2026-11-11-2348.md")
+	write("vault/.claude/skills/digest/digests/131840003151/2026-11-10-0900.md")
+	write("plain/.git/HEAD")
+	plain := write("plain/sub/.git/HEAD")
+	plainNote := write("plain/sub/n.md")
+
+	// The vault, over the repository inside it and the workspace.
+	if r := markdownRoot(note, top); r != vault {
+		t.Fatalf("root %q, want the vault %q", r, vault)
+	}
+	// Without a vault, the workspace over a repository nested in it.
+	if r := markdownRoot(plainNote, filepath.Join(top, "plain")); r != filepath.Join(top, "plain") {
+		t.Fatalf("root %q, want the workspace", r)
+	}
+	if r := markdownRoot(plainNote, ""); r != filepath.Dir(filepath.Dir(plain)) {
+		t.Fatalf("root %q, want the repository", r)
+	}
+
+	for target, want := range map[string]string{
+		"ada":           "vault/People/Ada.md",
+		"people/ADA":    "vault/People/Ada.md",
+		"today2":        "vault/a/b/c/today2.md",
+		"near":          "vault/repo/daily/Near.md",
+		"z/near":        "vault/z/near.md",
+		"gone":          "",
+		"app.json":      "",
+		"daily/today":   "vault/repo/daily/today.md",
+		"missing":       "",
+		"People/Ada.md": "vault/People/Ada.md",
+		// A note in a hidden folder other than Obsidian's.
+		"2026-11-11-2348": "vault/.claude/skills/digest/digests/131840003151/2026-11-11-2348.md",
+	} {
+		got := wikiLinkFile(vault, note, target, nil)
+		if want != "" {
+			want = filepath.Join(top, filepath.FromSlash(want))
+		}
+		if got != want {
+			t.Errorf("%q: got %q, want %q", target, got, want)
+		}
+	}
+
+	// From beside it, in its hidden folder.
+	if got, want := wikiLinkFile(vault, digest, "2026-11-10-0900", nil), filepath.Join(filepath.Dir(digest), "2026-11-10-0900.md"); got != want {
+		t.Errorf("beside a hidden note: got %q, want %q", got, want)
+	}
+	// One the index has not read yet is found on disk, beside the note.
+	late := write("vault/repo/daily/late.md")
+	if got := wikiLinkFile(vault, note, "late", nil); got != late {
+		t.Errorf("late: got %q, want %q", got, late)
+	}
+
+	// A note made shows up once the watch reports it; one only edited
+	// does not read the folder again.
+	if wikiFilesChanged([]string{note}, nil) {
+		t.Fatal("an edited note marked the files old")
+	}
+	made := write("vault/new/Fresh.md")
+	if !wikiFilesChanged([]string{made}, nil) {
+		t.Fatal("a note made left the files as they were")
+	}
+	called := make(chan struct{}, 1)
+	wikiLinkFile(vault, note, "fresh", func() { called <- struct{}{} })
+	<-called
+	if got := wikiLinkFile(vault, note, "fresh", nil); got != made {
+		t.Fatalf("fresh: got %q", got)
+	}
+}

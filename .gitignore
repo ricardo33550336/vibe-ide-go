@@ -1,0 +1,14 @@
+/build/
+/.mygo/
+mygo_windows_*.syso
+/mayoi
+/cmd/mayoi/mayoi
+*.test
+/.agents/
+/.claude/worktrees/
+/.qoder/worktrees/
+
+/.lavish/
+
+# reference checkouts, not part of this app
+/_reference/
