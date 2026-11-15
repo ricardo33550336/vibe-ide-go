@@ -560,17 +560,8 @@ func (a *app) menu(cli bool, run func(id string, win *mygo.Window)) *mygo.Menu {
 	forget.Disabled = len(a.settings.Recent) == 0
 	recent = append(recent, more, mygo.Separator(), forget)
 	file := []*mygo.MenuItem{
-		item("file.new"), item("file.newWindow"), item("file.openFolder"), item("file.openFolderWindow"),
+		item("file.new"), item("file.openFolder"),
 		{Label: locales.MenuOpenRecent(), Submenu: recent},
-	}
-	if remoteSupported {
-		// Reconnecting and disconnecting are of a remote folder's window.
-		reconnect, disconnect, forward := item("remote.reconnect"), item("remote.disconnect"), item("remote.forwardPort")
-		reconnect.Disabled, disconnect.Disabled, forward.Disabled = a.conn == nil, a.conn == nil, a.conn == nil
-		file = append(file, &mygo.MenuItem{Label: locales.MenuRemoteSSH(), Submenu: []*mygo.MenuItem{
-			item("remote.connect"), item("remote.openFolder"), item("remote.openConfig"),
-			mygo.Separator(), reconnect, disconnect, mygo.Separator(), forward,
-		}})
 	}
 	file = append(file, mygo.Separator(),
 		item("file.save"), item("file.saveAs"), item("file.saveAll"), checkbox("file.autoSave", a.prefs().AutoSave), mygo.Separator(),
@@ -578,11 +569,6 @@ func (a *app) menu(cli bool, run func(id string, win *mygo.Window)) *mygo.Menu {
 	if runtime.GOOS != "darwin" {
 		file = append(file, item("file.settings"))
 	}
-	// The sessions listed are of this machine, as a folder's own settings.
-	sessions := item("view.sessions")
-	sessions.Disabled = !a.hasSessions()
-	github := item("view.github")
-	github.Disabled = !a.hasGitHub()
 	// A folder's own settings are of a folder on this machine.
 	folderSettings := item("file.folderSettings")
 	folderSettings.Disabled = a.root == "" || remote.Is(a.root)
@@ -627,19 +613,6 @@ func (a *app) menu(cli bool, run func(id string, win *mygo.Window)) *mygo.Menu {
 			{Role: mygo.RoleQuit},
 		})}
 	}
-	// The items of the review comments, off while there are none.
-	reviewItem := func(id string) *mygo.MenuItem {
-		it := item(id)
-		it.Disabled = len(a.review.notes) == 0
-		return it
-	}
-	// The items of pull requests, off until gh answered where the
-	// repository is.
-	prItem := func(id string) *mygo.MenuItem {
-		it := item(id)
-		it.Disabled = !a.repository().git.ghOK
-		return it
-	}
 	cut, selectAll := &mygo.MenuItem{Role: mygo.RoleCut}, &mygo.MenuItem{Role: mygo.RoleSelectAll}
 	if a.keyFocus == placeEditor {
 		cut, selectAll = item("edit.cut"), item("edit.selectAll")
@@ -675,7 +648,7 @@ func (a *app) menu(cli bool, run func(id string, win *mygo.Window)) *mygo.Menu {
 			item("sel.format"), item("sel.insertSnippet"), item("sel.complete"),
 		}},
 		{Label: locales.MenuView(), Submenu: []*mygo.MenuItem{
-			item("view.sidebar"), checkbox("view.sidebarRight", a.settings.SidebarRight), item("view.explorer"), item("view.search"), item("view.scm"), github, sessions, mygo.Separator(),
+			item("view.sidebar"), checkbox("view.sidebarRight", a.settings.SidebarRight), item("view.explorer"), item("view.scm"), mygo.Separator(),
 			checkbox("view.compactFolders", a.settings.ExplorerCompactFolders), mygo.Separator(),
 			checkbox("view.wordWrap", a.prefs().WordWrap), item("view.wordWrapTab"), item("view.togglePreview"), item("view.toggleLivePreview"), item("view.previewToSide"),
 			{Label: locales.MenuOpenMarkdownAs(), Submenu: []*mygo.MenuItem{
@@ -683,16 +656,10 @@ func (a *app) menu(cli bool, run func(id string, win *mygo.Window)) *mygo.Menu {
 				radio("view.markdownOpen.live", a.prefs().MarkdownMode == "live"),
 				radio("view.markdownOpen.reading", a.prefs().MarkdownMode == "reading"),
 			}}, mygo.Separator(),
-			checkbox("view.vim", a.prefs().Vim), checkbox("view.projectTabs", a.settings.ProjectTabs), mygo.Separator(),
+			checkbox("view.vim", a.prefs().Vim), mygo.Separator(),
 			item("view.splitRight"), item("view.nextColumn"), item("view.prevColumn"),
 			item("view.moveTabNext"), item("view.moveTabPrev"), mygo.Separator(),
-			item("view.terminal"), item("view.newTerminal"), item("view.terminalTab"), item("view.terminalMove"), attachHC, installHC,
-			checkbox("view.terminalLocation", a.settings.TerminalLocation == "editor"),
-			{Label: locales.MenuPanelPosition(), Submenu: []*mygo.MenuItem{
-				radio("view.panelPosition.bottom", a.panelSide() == "bottom"),
-				radio("view.panelPosition.left", a.panelSide() == "left"),
-				radio("view.panelPosition.right", a.panelSide() == "right"),
-			}}, mygo.Separator(),
+			item("view.terminal"), item("view.newTerminal"), mygo.Separator(),
 			item("view.zoomIn"), item("view.zoomOut"), item("view.zoomReset"), mygo.Separator(),
 			{Label: locales.MenuTheme(), Submenu: []*mygo.MenuItem{
 				item("view.selectTheme"), mygo.Separator(),
@@ -720,10 +687,7 @@ func (a *app) menu(cli bool, run func(id string, win *mygo.Window)) *mygo.Menu {
 			item("git.stageFile"), item("git.unstageFile"), item("git.stageAll"), mygo.Separator(),
 			item("git.switchBranch"), item("git.switchWorktree"), item("git.createBranch"), item("git.fetch"), item("git.pull"), item("git.push"), mygo.Separator(),
 			item("git.stash"), item("git.stashUntracked"), item("git.stashes"), mygo.Separator(),
-			prItem("git.openPullRequest"), prItem("git.showPullRequestChecks"), prItem("git.newIssue"), mygo.Separator(),
-			checkbox("git.blame", a.prefs().Blame), item("git.openFileOnRemote"), item("git.copyPermalink"), item("git.refresh"), mygo.Separator(),
-			item("review.comment"), reviewItem("review.next"), reviewItem("review.previous"),
-			reviewItem("review.copy"), reviewItem("review.send"), reviewItem("review.clear"),
+			checkbox("git.blame", a.prefs().Blame), item("git.refresh"), mygo.Separator(),
 		}},
 		a.pluginMenu(item),
 		{Role: mygo.RoleWindowMenu},

@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -357,6 +358,11 @@ func (a *app) newTerminalIn(dir string) {
 	if s == nil {
 		return
 	}
+	// A terminal of the app the user runs is named by its place in the
+	// workspace panel, as vibe-ide's are, until it is renamed.
+	if a.terminalFirst && s.name == "" {
+		s.name = a.nextTermName()
+	}
 	a.panelTerm = s
 	a.rememberTabs()
 	if a.centerTerm {
@@ -365,6 +371,24 @@ func (a *app) newTerminalIn(dir string) {
 	}
 	a.window.PanelOpen, a.window.TerminalOpen = true, true
 	a.focusTerminal()
+}
+
+// nextTermName is the name of the next terminal of the workspace: the
+// first "Terminal N" its terminals do not use.
+func (a *app) nextTermName() string {
+	used := map[int]bool{}
+	for _, s := range a.panelTerms() {
+		if rest, ok := strings.CutPrefix(s.name, "Terminal "); ok {
+			if n, err := strconv.Atoi(rest); err == nil {
+				used[n] = true
+			}
+		}
+	}
+	n := 1
+	for used[n] {
+		n++
+	}
+	return fmt.Sprintf("Terminal %d", n)
 }
 
 // ensurePanelTerm picks the terminal the panel and the center show: the

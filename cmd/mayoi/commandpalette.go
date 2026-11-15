@@ -101,7 +101,7 @@ func (a *app) paletteEntries() []paletteEntry {
 		english[cmd.id] = groupTitle(commandGroup(en, cmd.id), cmd.label)
 	}
 	for _, cmd := range a.commandsIn(shown) {
-		if cmd.id == "go.commands" {
+		if cmd.id == "go.commands" || unavailableCommand(cmd.id) {
 			continue
 		}
 		group := commandGroup(shown, cmd.id)
@@ -114,6 +114,28 @@ func (a *app) paletteEntries() []paletteEntry {
 	}
 	slices.SortStableFunc(a.palette, func(x, y paletteEntry) int { return strings.Compare(x.title, y.title) })
 	return a.palette
+}
+
+// unavailableCommand reports whether a command is of a feature this app
+// does not offer: the agents' sessions, GitHub, remote SSH, plugins,
+// herdr-core, review notes and the terminal panel of Mayoi's editor.
+func unavailableCommand(id string) bool {
+	switch {
+	case strings.HasPrefix(id, "remote."), strings.HasPrefix(id, "account."),
+		strings.HasPrefix(id, "plugins."), strings.HasPrefix(id, "script."),
+		strings.HasPrefix(id, "review."), strings.HasPrefix(id, "view.panelPosition."):
+		return true
+	}
+	switch id {
+	case "view.sessions", "view.github", "git.writeMessage",
+		"git.openPullRequest", "git.showPullRequestChecks", "git.newIssue",
+		"git.openFileOnRemote", "git.copyPermalink",
+		"view.installHC", "view.attachHC", "view.terminalTab",
+		"view.terminalMove", "view.terminalLocation", "view.terminalLockRight",
+		"view.projectTabs", "file.newWindow", "file.openFolderWindow":
+		return true
+	}
+	return false
 }
 
 // commandOn reports whether a command that turns something on or off,

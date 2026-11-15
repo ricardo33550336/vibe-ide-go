@@ -152,6 +152,7 @@ func TestRemotePickerOpensSSHConfig(t *testing.T) {
 
 // File → Remote SSH and the command palette have it too.
 func TestSSHConfigCommand(t *testing.T) {
+	t.Skip("the app does not offer Remote SSH; the config is still opened by openSSHConfig")
 	remoteOnly(t)
 	_, config := sshHome(t)
 	hs := newHarness(t, true)

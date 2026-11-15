@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -101,4 +102,25 @@ func TestWorkspacePanelRestoresTerminals(t *testing.T) {
 	if terms[0].dir != root || terms[1].dir != other {
 		t.Fatalf("folders %q, %q", terms[0].dir, terms[1].dir)
 	}
+}
+
+// The terminal in the center takes typing from the keyboard.
+func TestWorkspaceTerminalTakesKeys(t *testing.T) {
+	t.Setenv("SHELL", "/bin/sh")
+	hs := newHarness(t, true)
+	a, tt := hs.a, hs.tt
+	a.terminalFirst, a.centerTerm = true, true
+	a.newTerminalIn(hs.root)
+	hs.settle()
+	s := a.panelTerm
+	if s == nil {
+		t.Fatal("no terminal")
+	}
+	if s.name != "Terminal 1" {
+		t.Fatalf("terminal named %q", s.name)
+	}
+	a.focusTerminal()
+	hs.settle()
+	tt.Type("echo MARK\n")
+	hs.until("the command's output", func() bool { return strings.Contains(s.term.Text(), "MARK") })
 }

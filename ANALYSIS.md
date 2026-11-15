@@ -380,3 +380,12 @@ P1 的成功标准（spike）：
 - **左侧工作区不可见**：`ButtonBase.Label()` 只是无障碍标签，不会绘制文字；面板背景也用了接近纯黑的 rail 色。
   - 工作区名、终端名、`Open Folder` 都改为 `Children` + `ui.Text` 绘制。
   - 面板背景改为 `p.chrome`，与右侧栏一致，并补上活跃圆点与文字颜色。
+
+### P2 进展：入口收敛与终端可用性
+
+- 菜单与命令面板去掉本产品不提供的能力：Sessions、GitHub、Remote SSH、账号同步、插件脚本、review notes、herdr-core、终端面板位置、终端放进编辑器标签、project tabs 开关、新窗口。
+  - `cmd/mayoi/commands.go`：View / File / Git 菜单只留保留功能。
+  - `cmd/mayoi/commandpalette.go`：`unavailableCommand` 过滤命令面板。
+- 新终端默认命名为 `Terminal 1`、`Terminal 2`…（按工作区内去重），与 vibe-ide 一致；仍可通过右键重命名。
+- 新增测试 `TestWorkspaceTerminalTakesKeys`：在中心终端输入 `echo MARK`，校验输出回显。
+- 全量 `go test -short ./cmd/mayoi` 只剩原仓库基线的 `hc attach` 两个环境失败；依赖 Remote SSH 菜单的测试按产品范围跳过。
