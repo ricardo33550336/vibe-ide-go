@@ -367,11 +367,25 @@ type Session struct {
 	// PanelTerm the one of them the panel showed.
 	PanelTerms []string `json:"panelTerms,omitempty"`
 	PanelTerm  int      `json:"panelTerm,omitempty"`
+	// Terminals are the panel's terminals on this machine, in the order
+	// the workspace panel shows them, which the next start runs anew in
+	// their folders, and ActiveTerminal the one it shows.
+	Terminals      []Term `json:"terminals,omitempty"`
+	ActiveTerminal int    `json:"activeTerminal,omitempty"`
 	// Expanded are the explorer's folders showing their files, relative to
 	// the window's folder.
 	Expanded []string `json:"expanded,omitempty"`
 	// Review is the review comments not sent yet.
 	Review []ReviewNote `json:"review,omitempty"`
+}
+
+// Term is a terminal of the workspace panel, as the settings keep it: the
+// folder it starts in, the name the user gave it, and the title its
+// programs gave it.
+type Term struct {
+	Dir   string `json:"dir,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Title string `json:"title,omitempty"`
 }
 
 // ReviewNote is a review comment on lines of a file, as the settings keep

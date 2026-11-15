@@ -222,8 +222,9 @@ func (a *app) main(c *ui.Context) {
 	p, w := a.pal, a.window
 	a.remoteBanner(c)
 	// Terminal first: the center shows the workspace's terminal until a
-	// file is opened, or the terminal button asks for the editors.
-	if a.centerTerm {
+	// file is opened, or the terminal button asks for the editors. A
+	// window with no folder keeps the welcome page.
+	if a.centerTerm && a.root != "" {
 		a.centerTerminal(c)
 		return
 	}
@@ -264,6 +265,9 @@ func (a *app) centerTerminal(c *ui.Context) {
 	box := ui.Column(c.Key("center-terminal")).Grow(1).MinHeight(0).Background(p.panel)
 	box.Children(func() {
 		s := a.panelTerm
+		if s != nil && s.tab != nil {
+			s = nil
+		}
 		if s == nil {
 			if ts := a.panelTerms(); len(ts) > 0 {
 				s = ts[0]
@@ -311,8 +315,8 @@ func (a *app) sidePanel(c *ui.Context, right bool) {
 	if !w.SidebarClosed {
 		room -= w.SidebarWidth
 	}
-	if a.rail != nil {
-		room -= railW
+	if a.rail != nil && a.settings.ProjectTabs {
+		room -= workspaceW
 	}
 	room = max(room, minPanelW)
 	size := clamp(w.PanelWidth, minPanelW, room)

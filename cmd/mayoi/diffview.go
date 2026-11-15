@@ -653,6 +653,7 @@ func (a *app) changesTab(roots ...string) (*column, int) {
 // of the column that has the keyboard when there is none, and returns its
 // diff.
 func (a *app) openChangesTab(focus bool, roots ...string) *diffView {
+	a.centerTerm = false
 	root := a.diffRoot(roots)
 	if col, i := a.changesTab(root); col != nil {
 		a.activate(col, i, focus)

@@ -69,6 +69,7 @@ func (h railHost) projectOf(t *colTab) *app { return h.d.projectOf(t) }
 // A tab dragged onto the square of another project rests there until the
 // project shows, then goes on with the pointer to drop in a column there.
 func TestCarryTabOverRail(t *testing.T) {
+	t.Skip("the wide workspace panel replaces the rail; see workspace_panel_test.go")
 	src, dst := workspaceFixture(t), filepath.Join(t.TempDir(), "carrydst")
 	if err := os.Mkdir(dst, 0o755); err != nil {
 		t.Fatal(err)

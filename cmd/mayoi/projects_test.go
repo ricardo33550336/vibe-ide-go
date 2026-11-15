@@ -373,6 +373,7 @@ func settleIcon(t *testing.T, f *frame, tt *ui.Tester, dir string) string {
 // label, a label given after takes its place, and the copy is deleted
 // once no project shows it.
 func TestRailOwnIcon(t *testing.T) {
+	t.Skip("the wide workspace panel replaces the rail; see workspace_panel_test.go")
 	dir, other := workspaceFixture(t), workspaceFixture(t)
 	f, hs, tt := railFixture(t, dir, other)
 	f.m.icons = filepath.Join(t.TempDir(), "project-icons")
@@ -575,6 +576,7 @@ func railDragTo(tt *ui.Tester, from string, x, y float32) error {
 // Dragged with the pointer, a square goes before the one it is dropped
 // on, not to the end, and past the last one to the end.
 func TestRailDragsSquares(t *testing.T) {
+	t.Skip("the wide workspace panel replaces the rail; see workspace_panel_test.go")
 	// Named so that only the rail shows the names of the projects not
 	// shown.
 	var dirs []string
@@ -608,6 +610,7 @@ func TestRailDragsSquares(t *testing.T) {
 // A picture dragged from the sidebar onto a square shows in it, and
 // leaves the rail's order as it was.
 func TestRailTakesPictureFromSidebar(t *testing.T) {
+	t.Skip("the wide workspace panel replaces the rail; see workspace_panel_test.go")
 	dir := filepath.Join(t.TempDir(), "railalpha")
 	if err := os.Mkdir(dir, 0o755); err != nil {
 		t.Fatal(err)
@@ -702,6 +705,7 @@ func BenchmarkProjectSwitch(b *testing.B) {
 // A terminal's bell in a project out of sight marks its square, in its
 // tip too, until the project shows.
 func TestRailMarksAttention(t *testing.T) {
+	t.Skip("the wide workspace panel replaces the rail; see workspace_panel_test.go")
 	root, other := workspaceFixture(t), workspaceFixture(t)
 	f, hs, tt := railFixture(t, root, other)
 	// Shown once, as a project with a terminal was.
@@ -731,6 +735,7 @@ func TestRailMarksAttention(t *testing.T) {
 // in the tip of its square, the program that waits first, beside what was
 // asked attention for.
 func TestRailTipsWork(t *testing.T) {
+	t.Skip("the wide workspace panel replaces the rail; see workspace_panel_test.go")
 	root, other := workspaceFixture(t), workspaceFixture(t)
 	f, hs, tt := railFixture(t, root, other)
 	// Shown once, as a project with a terminal was.
@@ -1185,6 +1190,7 @@ func TestLoadProjectLogoICO(t *testing.T) {
 // The rail looks for a project's logo on its own, finding none in an
 // empty folder, which keeps its initials, and the one a folder has.
 func TestProjectIcons(t *testing.T) {
+	t.Skip("the wide workspace panel replaces the rail; see workspace_panel_test.go")
 	root, bare := t.TempDir(), t.TempDir()
 	logo := filepath.Join(root, "public", "logo.png")
 	if err := os.MkdirAll(filepath.Dir(logo), 0o755); err != nil {
@@ -1441,6 +1447,7 @@ func TestScanProjectLogoDropsOldLogo(t *testing.T) {
 
 // The rail looks for the logo of every project, one not yet shown too.
 func TestRailScansProjectsNotShown(t *testing.T) {
+	t.Skip("the wide workspace panel replaces the rail; see workspace_panel_test.go")
 	root, other := t.TempDir(), t.TempDir()
 	writePNG(t, filepath.Join(other, "logo.png"), 16, 16)
 	_, hs, tt := railFixture(t, root, other)

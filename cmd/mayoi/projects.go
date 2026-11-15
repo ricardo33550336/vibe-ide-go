@@ -2145,7 +2145,7 @@ func (f *frame) workspaceView(c *ui.Context, a *app) {
 		})
 		ui.Row(c).Height(36).Padding(0, 8, 0, 8).Children(func() {
 			b := ui.ButtonBase(c.Key("workspace-open")).FillWidth().Height(24).Radius(5).
-				Padding(0, 8, 0, 8).Label("+  Open Folder")
+				Padding(0, 8, 0, 8).Label(locales.CmdFileOpenFolder())
 			b.Background(p.hover)
 			if b.Hovered() {
 				b.Background(p.active)
@@ -2176,26 +2176,37 @@ func (f *frame) workspaceGroup(c *ui.Context, a *app, h *desktop, i int) {
 			case b.Hovered():
 				b.Background(p.hover)
 			}
+			dir := h.a.folder()
 			b.ContextMenu(func(m *ui.Menu) {
 				if m.Item("New Terminal").Chosen() {
 					h.a.post(func() { f.activate(h); h.a.newTerminalIn(h.a.workDir()) })
 				}
-				if m.Item("Rename Workspace").Disabled(h.a.folder() == "").Chosen() {
-					h.a.post(func() { f.activate(h); f.askRailLabel(h.a, h.a.folder(), name) })
+				if m.Item("Rename Workspace").Disabled(dir == "").Chosen() {
+					h.a.post(func() { f.activate(h); f.askRailLabel(h.a, dir, name) })
 				}
-				mn := m
-				if mn.Item("Move Up").Disabled(i == 0).Chosen() {
+				if m.Item("Move Up").Disabled(i == 0).Chosen() {
 					h.a.post(func() { f.move(h, f.tabs[i-1]) })
 				}
-				if mn.Item("Move Down").Disabled(i+1 >= len(f.tabs)).Chosen() {
+				if m.Item("Move Down").Disabled(i+1 >= len(f.tabs)).Chosen() {
 					var before *desktop
 					if i+2 < len(f.tabs) {
 						before = f.tabs[i+2]
 					}
 					h.a.post(func() { f.move(h, before) })
 				}
-				if mn.Item(locales.CmdFileCloseProject()).Chosen() {
+				m.Separator()
+				if m.Item(revealLabel()).Disabled(dir == "").Chosen() {
+					h.a.post(func() { f.activate(h); h.a.host.reveal(dir) })
+				}
+				if m.Item(locales.CopyPath()).Disabled(dir == "").Chosen() {
+					a.services.WriteClipboard(hostPath(dir))
+				}
+				m.Separator()
+				if m.Item(locales.CmdFileCloseProject()).Chosen() {
 					h.a.post(func() { h.closeProject() })
+				}
+				if m.Item(locales.CloseOtherProjects()).Disabled(len(f.tabs) < 2).Chosen() {
+					h.a.post(func() { f.confirmCloseOthers(h.a, h) })
 				}
 			})
 			if b.Clicked() {
@@ -2220,15 +2231,15 @@ func (f *frame) workspaceGroup(c *ui.Context, a *app, h *desktop, i int) {
 			return
 		}
 		for _, s := range terms {
-			f.workspaceTerm(c, h, s, on)
+			f.workspaceTerm(c, a, h, s, on)
 		}
 	})
 }
 
 // workspaceTerm is a terminal of a workspace in its panel: a click shows it
 // in the center, and its menu renames or kills it.
-func (f *frame) workspaceTerm(c *ui.Context, h *desktop, s *session, on bool) {
-	p := h.a.pal
+func (f *frame) workspaceTerm(c *ui.Context, a *app, h *desktop, s *session, on bool) {
+	p := a.pal
 	active := on && h.a.panelTerm == s
 	label := s.label()
 	if label == "" {
@@ -2253,10 +2264,18 @@ func (f *frame) workspaceTerm(c *ui.Context, h *desktop, s *session, on bool) {
 		ui.Text(c, label).FontSize(11.5).TextColor(col).SingleLine().Grow(1)
 	})
 	b.Tooltip(s.dir)
+	i := slices.Index(h.a.panelTerms(), s)
 	b.ContextMenu(func(m *ui.Menu) {
 		if m.Item(locales.TermRename()).Chosen() {
 			h.a.post(func() { f.activate(h); h.a.askRenameTerminal(s) })
 		}
+		if m.Item("Move Up").Disabled(i <= 0).Chosen() {
+			h.a.post(func() { f.activate(h); h.a.moveTerm(s, -1) })
+		}
+		if m.Item("Move Down").Disabled(i < 0 || i+1 >= len(h.a.panelTerms())).Chosen() {
+			h.a.post(func() { f.activate(h); h.a.moveTerm(s, 1) })
+		}
+		m.Separator()
 		if m.Item(locales.TermKill()).Chosen() {
 			h.a.post(func() { f.activate(h); h.a.killTerminalAsking(s) })
 		}

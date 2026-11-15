@@ -342,13 +342,53 @@ func (a *app) newTerminalIn(dir string) {
 // ensurePanelTerm picks the terminal the panel and the center show: the
 // one that showed last, or the first of the workspace.
 func (a *app) ensurePanelTerm() *session {
-	if a.panelTerm != nil {
+	if a.panelTerm != nil && a.panelTerm.tab == nil {
 		return a.panelTerm
 	}
+	a.panelTerm = nil
 	if ts := a.panelTerms(); len(ts) > 0 {
 		a.panelTerm = ts[0]
 	}
 	return a.panelTerm
+}
+
+// restoreTerminals starts the terminals a session kept, in their folders,
+// and shows the one it kept active. Without any, a workspace of the app
+// starts its first terminal.
+func (a *app) restoreTerminals(saved []settings.Term, active int, hadHC bool) {
+	for i, t := range saved {
+		s := a.startTerminal(t.Dir)
+		if s == nil {
+			continue
+		}
+		s.name, s.title = t.Name, t.Title
+		if i == active {
+			a.panelTerm = s
+		}
+	}
+	if a.panelTerm == nil {
+		a.ensurePanelTerm()
+	}
+	switch {
+	case a.terminalFirst && len(a.panelTerms()) == 0 && a.root != "":
+		a.newTerminalIn(a.workDir())
+	case !a.terminalFirst && !hadHC && len(a.panelTerms()) == 0 && a.window.TerminalOpen && a.window.PanelOpen && a.root != "":
+		a.newTerminal()
+	}
+}
+
+// moveTerm moves a terminal of the panel by steps along its list, among
+// the panel's terminals.
+func (a *app) moveTerm(s *session, by int) {
+	rest := a.panelTerms()
+	i := slices.Index(rest, s)
+	j := i + by
+	if i < 0 || j < 0 || j >= len(rest) {
+		return
+	}
+	x, y := slices.Index(a.terms, rest[i]), slices.Index(a.terms, rest[j])
+	a.terms[x], a.terms[y] = a.terms[y], a.terms[x]
+	a.rememberTabs()
 }
 
 // focusHome gives the keyboard to the terminal when the center shows one,
@@ -518,7 +558,7 @@ func (a *app) terminalToPanel(s *session) {
 
 // focusTerminal gives the keyboard to the terminal the panel shows.
 func (a *app) focusTerminal() {
-	if s := a.panelTerm; s != nil {
+	if s := a.ensurePanelTerm(); s != nil {
 		s.view.Focus()
 	}
 	a.focus = paneTerminal

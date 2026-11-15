@@ -316,3 +316,56 @@ P1 的成功标准（spike）：
    - 右侧栏 Explorer/Git 跟随当前 desktop；
    - `state.json` 新增工作区拓扑后的恢复。
 3. spike 通过后，再决定是否正式 fork 与进入 P2。
+
+---
+
+## 10. P1 已落地（当前工作区）
+
+已按第 8 节的回答开始实施：保留编辑器；沿用 project tabs，但把 rail 改为宽面板；左侧只做列表；把 Mayoi 整棵树复制到仓库根目录。
+
+### 目录
+
+- 应用根目录：`vibe-ide-go/`（Mayoi 源码 + `go.mod`）
+- 参考仓库：`_reference/Mayoi`、`_reference/vibe-ide`（已 gitignore，Go 不会编译）
+- 根目录已 `git init`，首个提交为 Mayoi 基线。
+
+### 已实现
+
+1. **多工作区宽面板**（`cmd/mayoi/projects.go`）
+   - 48px rail 换成 236px 的 `workspaceView`。
+   - 每个工作区显示名称、活跃标记、`+ 新终端`、右键菜单（新终端 / 重命名 / 上移 / 下移 / 在 Finder 中显示 / 复制路径 / 关闭工作区 / 关闭其他工作区）。
+   - 工作区下列出该工作区的所有终端，点击切换工作区并让终端占据中心。
+   - 底部「打开文件夹」。
+   - 仍使用 Mayoi 的 `desktop`/`frame` 一窗多项目模型；`launch` 强制 `ProjectTabs=true`。
+2. **终端第一的中心区**（`cmd/mayoi/view.go`、`panel.go`）
+   - `app.centerTerm`：中心默认显示当前工作区终端。
+   - 打开文件 / Diff 自动切到编辑器视图；关闭最后一个标签自动回终端。
+   - `Ctrl+``（终端按钮）在终端与编辑器之间切换。
+   - 空工作区显示「New Terminal」按钮。
+3. **右侧只留目录 + Git**（`cmd/mayoi/sidebar.go`）
+   - 顶部只显示 Explorer 与 Source Control 两个切换。
+   - Search / Sessions / GitHub 视图仍可由命令触达，但不再有入口。
+   - `launch` 强制 `SidebarRight=true`。
+4. **终端会话持久化**（`internal/settings`、`cmd/mayoi/columns.go`、`panel.go`）
+   - `settings.Session` 新增 `terminals` 与 `activeTerminal`。
+   - 退出时保存每个工作区终端的 cwd / 名称 / 标题与顺序；启动时在原目录重新启动 shell 并恢复活跃项。
+   - 首次打开工作区自动建一个终端。
+5. **测试**
+   - 新增 `cmd/mayoi/workspace_panel_test.go`：验证点击终端切换工作区、文件打开切编辑器、再次点击回终端、终端恢复。
+   - 旧 rail 的图标/拖拽/状态徽标测试已跳过（`t.Skip`），留待新面板补齐这些能力。
+
+### 当前测试状态
+
+- `go build ./...`、`go vet` 通过。
+- `go test -short ./cmd/mayoi` 仅剩基线环境失败：依赖真实 shell 提示符的 4 个测试，以及 `hc attach` 的 2 个测试；在原始 `_reference/Mayoi` 上同样失败。
+- 新增的工作区面板测试通过。
+
+### 已知缺口（下一步 P2/P3）
+
+- 终端/工作区尚未支持拖拽排序（目前用右键「上移/下移」）。
+- 工作区面板宽度固定 236，尚无拖拽与持久化。
+- 工作区面板还没有运行状态徽标、未保存标记、远程连接标记。
+- 旧 rail 的项目图标 / 颜色 / logo 扫描未移植。
+- Mayoi 的 AI、GitHub、Search、Sessions、Remote、Plugins、herdr-core 入口尚未从菜单/命令中清理；目前只是没有侧栏按钮。
+- 品牌仍是 Mayoi；`mygo.json`、模块名、命令名未改。
+- 终端会话恢复是“重启新 shell”，不保留运行中的进程。

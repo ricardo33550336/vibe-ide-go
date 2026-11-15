@@ -675,6 +675,15 @@ func (a *app) dropTab(t *colTab) {
 	if len(col.tabs) == 0 {
 		a.removeColumn(col)
 	}
+	// The last file closed gives the center back to the terminal.
+	if a.terminalFirst && !a.anyTabs() {
+		a.centerTerm = true
+	}
+}
+
+// anyTabs reports whether a column shows a tab.
+func (a *app) anyTabs() bool {
+	return slices.ContainsFunc(a.cols, func(col *column) bool { return len(col.tabs) > 0 })
 }
 
 // removeColumn takes a column away, keeping locked columns and the last
@@ -1015,14 +1024,19 @@ func (a *app) rememberTabs() {
 	}
 	a.window.Review = a.keptReview()
 	a.window.PanelTerms, a.window.PanelTerm = nil, 0
+	a.window.Terminals, a.window.ActiveTerminal = nil, 0
 	for _, s := range a.panelTerms() {
-		if s.hc == "" {
+		if s.hc != "" {
+			if s == a.panelTerm {
+				a.window.PanelTerm = len(a.window.PanelTerms)
+			}
+			a.window.PanelTerms = append(a.window.PanelTerms, s.hc)
 			continue
 		}
 		if s == a.panelTerm {
-			a.window.PanelTerm = len(a.window.PanelTerms)
+			a.window.ActiveTerminal = len(a.window.Terminals)
 		}
-		a.window.PanelTerms = append(a.window.PanelTerms, s.hc)
+		a.window.Terminals = append(a.window.Terminals, settings.Term{Dir: s.dir, Name: s.name, Title: s.title})
 	}
 	a.settings.Changed()
 }

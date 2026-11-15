@@ -550,8 +550,10 @@ func (a *app) tell(n note) { a.notes = append(a.notes, n) }
 func (a *app) start() {
 	w := a.window
 	// Restoring the tabs remembers them, and the panel's terminals with
-	// them, which are not restored yet: keep those to attach to.
+	// them, which are not restored yet: keep those to attach to, and the
+	// terminals that run here, to start again.
 	terms, shown := slices.Clone(w.PanelTerms), w.PanelTerm
+	local, activeLocal := slices.Clone(w.Terminals), w.ActiveTerminal
 	if w.Folder != "" {
 		// A remote folder opens at once, as its host connects.
 		if remote.Is(w.Folder) {
@@ -561,9 +563,8 @@ func (a *app) start() {
 		}
 	}
 	a.restoreTabs()
-	if !a.restorePanel(terms, shown) && w.TerminalOpen && w.PanelOpen && a.root != "" {
-		a.newTerminal()
-	}
+	hadHC := a.restorePanel(terms, shown)
+	a.restoreTerminals(local, activeLocal, hadHC)
 }
 
 // openFolder makes dir the workspace.
@@ -601,8 +602,9 @@ func (a *app) openFolder(dir string) {
 	for _, v := range a.imageViewers() {
 		a.tree.Watch(v.path)
 	}
-	// Terminal first: a workspace with no terminal starts one.
-	if a.terminalFirst && len(a.panelTerms()) == 0 {
+	// Terminal first: a workspace with no terminal starts one, unless
+	// the session kept terminals, which start after the tabs.
+	if a.terminalFirst && len(a.panelTerms()) == 0 && len(a.window.Terminals) == 0 {
 		a.newTerminalIn(a.workDir())
 	}
 	a.settings.Changed()
