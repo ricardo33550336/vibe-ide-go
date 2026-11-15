@@ -316,7 +316,7 @@ func (a *app) sidePanel(c *ui.Context, right bool) {
 		room -= w.SidebarWidth
 	}
 	if a.rail != nil && a.settings.ProjectTabs {
-		room -= workspaceW
+		room -= a.workspaceWidth()
 	}
 	room = max(room, minPanelW)
 	size := clamp(w.PanelWidth, minPanelW, room)

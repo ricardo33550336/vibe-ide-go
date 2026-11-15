@@ -202,6 +202,9 @@ type Prefs struct {
 	Theme string `json:"theme,omitempty"`
 	// SidebarRight puts the sidebar right of the editors, rather than left.
 	SidebarRight bool `json:"sidebarRight,omitempty"`
+	// WorkspaceWidth is how wide the panel of workspaces is, in DIPs, 0
+	// for its default.
+	WorkspaceWidth float32 `json:"workspaceWidth,omitempty"`
 	// ExplorerCompactFolders shows a chain of single-child folders on one
 	// row in the Explorer, with its names separated by slashes.
 	ExplorerCompactFolders bool `json:"explorerCompactFolders,omitempty"`

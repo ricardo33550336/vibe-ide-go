@@ -43,6 +43,16 @@ const railW = 48
 // the rail when the app shows its workspaces and their terminals.
 const workspaceW = 236
 
+// workspaceWidth is how wide the panel of workspaces is: its setting,
+// within bounds, else its default.
+func (a *app) workspaceWidth() float32 {
+	w := a.settings.WorkspaceWidth
+	if w == 0 {
+		w = workspaceW
+	}
+	return clamp(w, 180, 420)
+}
+
 // frame is a native window of the app. It shows one project, or with
 // project tabs several, one at a time, which the rail on its left
 // chooses among.
@@ -2130,9 +2140,14 @@ func (f *frame) workspaceView(c *ui.Context, a *app) {
 		return
 	}
 	p := a.pal
-	box := ui.Column(c.Key("workspaces")).Width(workspaceW).Shrink(0).FillHeight().
+	width := a.workspaceWidth()
+	box := ui.Column(c.Key("workspaces")).Width(width).Shrink(0).FillHeight().
 		Background(p.chrome).BorderWidth(0, 1, 0, 0).BorderColor(p.seam())
 	box.Children(func() {
+		a.splitter(c, edgeRight, func(d float32) {
+			a.settings.WorkspaceWidth = clamp(width+d, 180, 420)
+			a.settings.Changed()
+		})
 		ui.Row(c).Height(30).Padding(0, 10, 0, 12).AlignItems(ui.Center).Children(func() {
 			ui.Text(c, "WORKSPACES").FontSize(10.5).FontWeight(600).LetterSpacing(0.7).TextColor(p.muted).Grow(1)
 		})

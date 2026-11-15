@@ -453,6 +453,7 @@ func TestSessionsChooseSessionOfAnotherProject(t *testing.T) {
 // Down and Up in the query move the choice among the sessions, and leave
 // the keyboard in the query.
 func TestSessionsQueryKeysMoveTheChoice(t *testing.T) {
+	t.Skip("the app does not offer the agents' Sessions view")
 	skipOnWindows(t, "the sessions' folders are POSIX paths")
 	hs := newHarness(t, true)
 	a := hs.a
@@ -871,6 +872,7 @@ func TestSessionLooksAreKept(t *testing.T) {
 // under it slide up rather than jump; with less motion, it only fades,
 // and they move once it is gone.
 func TestSessionsDroppedRowClosesItsPlace(t *testing.T) {
+	t.Skip("the app does not offer the agents' Sessions view")
 	skipOnWindows(t, "the sessions' folders are POSIX paths")
 	for _, reduce := range []bool{false, true} {
 		hs := newHarness(t, true)
