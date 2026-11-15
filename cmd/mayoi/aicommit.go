@@ -196,33 +196,4 @@ func (a *app) aiFailed(err error) {
 // write the message, or stop writing it, shown while signed in.
 func (a *gitContext) writeButton(c *ui.Context) {
 	// This app has no AI backend.
-	return
-	g := a.git
-	if a.app.host.ai() == nil && g.writing == nil {
-		return
-	}
-	p := a.app.pal
-	label := locales.ScmWriteMessage()
-	if g.writing != nil {
-		label = locales.ScmStopWriting()
-	}
-	b := ui.ButtonBase(c.Key("write-message")).Absolute().Right(4).Top(3).Size(22, 22).Radius(5).
-		Justify(ui.Center).AlignItems(ui.Center).Label(label).Tooltip(label).Disabled(g.writing == nil && g.commanding())
-	if b.Hovered() {
-		b.Background(p.hover)
-	}
-	b.Transition(hoverFade)
-	b.Children(func() {
-		switch {
-		case g.writing != nil && b.Hovered():
-			ui.Icon(c, iconStopSquare).FontSize(13).TextColor(p.accent)
-		case g.writing != nil:
-			ui.Spinner(c).Size(12, 12)
-		default:
-			ui.Icon(c, iconSparkles).FontSize(13).TextColor(p.faint)
-		}
-	})
-	if b.Clicked() {
-		a.writeMessage()
-	}
 }
