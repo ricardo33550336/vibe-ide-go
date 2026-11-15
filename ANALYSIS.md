@@ -369,3 +369,14 @@ P1 的成功标准（spike）：
 - Mayoi 的 AI、GitHub、Search、Sessions、Remote、Plugins、herdr-core 入口尚未从菜单/命令中清理；目前只是没有侧栏按钮。
 - 品牌仍是 Mayoi；`mygo.json`、模块名、命令名未改。
 - 终端会话恢复是“重启新 shell”，不保留运行中的进程。
+
+### P1.1 修复：终端 129 与左栏不可见
+
+- **终端启动即退出（code 129）**：MyGo 自带 pty 在 macOS 上读取 master 会立即返回 `EAGAIN`，MyGo 把它当成结束，关闭 master，shell 收到 SIGHUP。
+  - 现在本地终端改用 `github.com/creack/pty` 开 PTY，通过 `terminal.Options.Conn` 交给 MyGo 渲染（`cmd/mayoi/localterm_unix.go`）。
+  - 程序退出后读循环保持挂起，由 app 自己显示退出信息，避免 MyGo 追加 `[Disconnected]`。
+  - Windows 仍走 MyGo 的 ConPTY 路径（`localterm_other.go` 返回不支持，自动回退）。
+  - 已验证：真实 app 启动后 `ps` 中 `-zsh` 存活（`Ss+`）。
+- **左侧工作区不可见**：`ButtonBase.Label()` 只是无障碍标签，不会绘制文字；面板背景也用了接近纯黑的 rail 色。
+  - 工作区名、终端名、`Open Folder` 都改为 `Children` + `ui.Text` 绘制。
+  - 面板背景改为 `p.chrome`，与右侧栏一致，并补上活跃圆点与文字颜色。

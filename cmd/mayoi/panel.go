@@ -80,8 +80,10 @@ type session struct {
 	// title its programs give it.
 	name string
 	// started is when its program started, to tell a shell that exits
-	// as it starts from one the user ended.
+	// as it starts from one the user ended, and ended that its exit was
+	// handled, so that MyGo's own report of it is not handled again.
 	started time.Time
+	ended   bool
 	// agent is the agent the Sessions view resumed in it, or showed it
 	// for, and resumed the key of the session, "" for none.
 	agent   agents.Harness
@@ -196,7 +198,7 @@ func (a *app) addTerminal(s *session) *session {
 		a.fail("%s", locales.FailStartTerminal(err.Error()))
 		return nil
 	}
-	s.term, s.started = term, time.Now()
+	s.term, s.started, s.ended = term, time.Now(), false
 	a.terms = append(a.terms, s)
 	return s
 }
@@ -227,6 +229,16 @@ func (a *app) spawnTerminal(s *session, dir string) (*terminal.Terminal, error) 
 	if s.hcStarting {
 		s.hcWait = newHCWait()
 		conn = s.hcWait
+	}
+	// A terminal of this machine runs in a pseudo-terminal of our own on
+	// macOS and Linux, which creack/pty opens so that MyGo reads it.
+	var local *localPTY
+	if s.attach == "" && s.hc == "" && !s.hcStarting && !remote.Is(dir) {
+		if _, _, isRemote := remote.Lookup(dir); !isRemote {
+			if p, err := startLocalPTY(dir); err == nil {
+				local, conn = p, p
+			}
+		}
 	}
 	// term is the terminal made, which OnExit tells from one that took
 	// its place, and in what its programs last said that waits for the
@@ -290,6 +302,11 @@ func (a *app) spawnTerminal(s *session, dir string) (*terminal.Terminal, error) 
 			a.post(func() { s.found = st })
 		},
 		OnExit: func(code int) {
+			// A pseudo-terminal of our own tells the app of the exit
+			// itself, once the read that ended is let go.
+			if local != nil {
+				return
+			}
 			a.post(func() { a.terminalExited(s, term, code) })
 		},
 		// A program done in a project out of sight, as a build or an
@@ -316,7 +333,18 @@ func (a *app) spawnTerminal(s *session, dir string) (*terminal.Terminal, error) 
 			}
 		},
 	})
-	return term, err
+	if err != nil {
+		if local != nil {
+			local.Close()
+		}
+		return nil, err
+	}
+	if local != nil {
+		local.setOnEnd(func(code int) {
+			a.post(func() { a.terminalExited(s, term, code) })
+		})
+	}
+	return term, nil
 }
 
 // newTerminal starts a terminal in the panel and shows it.
@@ -508,6 +536,7 @@ func (a *app) removeTerminal(s *session) {
 	if i < 0 {
 		return
 	}
+	s.ended = true
 	s.term.Close()
 	if t := s.tab; t != nil {
 		a.terms = slices.Delete(a.terms, i, i+1)
@@ -567,6 +596,7 @@ func (a *app) focusTerminal() {
 // closeTerminals hangs up every terminal, as the window closes.
 func (a *app) closeTerminals() {
 	for _, s := range a.terms {
+		s.ended = true
 		s.term.Close()
 	}
 	a.terms, a.panelTerm = nil, nil

@@ -2130,8 +2130,8 @@ func (f *frame) workspaceView(c *ui.Context, a *app) {
 		return
 	}
 	p := a.pal
-	box := ui.Column(c.Key("workspaces")).Width(workspaceW).Shrink(0).
-		Background(railGround(p)).BorderWidth(0, 1, 0, 0).BorderColor(p.seam())
+	box := ui.Column(c.Key("workspaces")).Width(workspaceW).Shrink(0).FillHeight().
+		Background(p.chrome).BorderWidth(0, 1, 0, 0).BorderColor(p.seam())
 	box.Children(func() {
 		ui.Row(c).Height(30).Padding(0, 10, 0, 12).AlignItems(ui.Center).Children(func() {
 			ui.Text(c, "WORKSPACES").FontSize(10.5).FontWeight(600).LetterSpacing(0.7).TextColor(p.muted).Grow(1)
@@ -2144,12 +2144,16 @@ func (f *frame) workspaceView(c *ui.Context, a *app) {
 			})
 		})
 		ui.Row(c).Height(36).Padding(0, 8, 0, 8).Children(func() {
-			b := ui.ButtonBase(c.Key("workspace-open")).FillWidth().Height(24).Radius(5).
-				Padding(0, 8, 0, 8).Label(locales.CmdFileOpenFolder())
+			b := ui.ButtonBase(c.Key("workspace-open")).FillWidth().Height(26).Radius(5).
+				Padding(0, 8, 0, 8).Gap(7)
 			b.Background(p.hover)
 			if b.Hovered() {
 				b.Background(p.active)
 			}
+			b.Children(func() {
+				ui.Icon(c, iconFolderPlus).FontSize(13).TextColor(p.muted)
+				ui.Text(c, locales.CmdFileOpenFolder()).FontSize(11.5).TextColor(p.text).SingleLine().Grow(1)
+			})
 			if b.Clicked() {
 				a.chooseFolder()
 			}
@@ -2169,13 +2173,20 @@ func (f *frame) workspaceGroup(c *ui.Context, a *app, h *desktop, i int) {
 				mark.Background(p.accent)
 			}
 			b := ui.ButtonBase(c.Key(fmt.Sprintf("workspace-%d", h.a.window.ID))).Grow(1).Height(24).
-				Padding(2, 6, 2, 4).Radius(4).Label(name).Tooltip(where)
+				Padding(2, 6, 2, 4).Radius(4).Tooltip(where)
 			switch {
 			case on:
 				b.Background(p.active)
 			case b.Hovered():
 				b.Background(p.hover)
 			}
+			b.Children(func() {
+				col := p.muted
+				if on {
+					col = p.text
+				}
+				ui.Text(c, name).FontSize(11.5).FontWeight(550).TextColor(col).SingleLine().Grow(1)
+			})
 			dir := h.a.folder()
 			b.ContextMenu(func(m *ui.Menu) {
 				if m.Item("New Terminal").Chosen() {
@@ -2248,8 +2259,8 @@ func (f *frame) workspaceTerm(c *ui.Context, a *app, h *desktop, s *session, on 
 	if label == "" {
 		label = "Terminal"
 	}
-	b := ui.ButtonBase(c.Key(fmt.Sprintf("workspace-term-%d", s.id))).FillWidth().Height(22).
-		Padding(1, 6, 1, 14).Radius(4)
+	b := ui.ButtonBase(c.Key(fmt.Sprintf("workspace-term-%d", s.id))).FillWidth().Height(23).
+		Padding(1, 6, 1, 14).Gap(6).Radius(4)
 	switch {
 	case active:
 		b.Background(p.active)
@@ -2257,7 +2268,12 @@ func (f *frame) workspaceTerm(c *ui.Context, a *app, h *desktop, s *session, on 
 		b.Background(p.hover)
 	}
 	b.Children(func() {
-		col := p.muted
+		col := p.faint
+		if active {
+			col = p.accent
+		}
+		ui.Box(c).Width(4).Height(4).Radius(2).Shrink(0).Background(col)
+		col = p.muted
 		if active {
 			col = p.text
 		}

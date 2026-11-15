@@ -26,9 +26,10 @@ func lostNote(host string) string {
 // terminalExited takes the end of a terminal's program: a terminal of a
 // host whose connection went waits for it, any other closes.
 func (a *app) terminalExited(s *session, t *terminal.Terminal, code int) {
-	if s.term != t {
-		return // one restarted in its place
+	if s.term != t || s.ended {
+		return // one restarted in its place, or its exit handled
 	}
+	s.ended = true
 	if s.hc != "" {
 		a.hcExited(s, t)
 		return
@@ -121,7 +122,7 @@ func (a *app) restartTerminal(s *session) {
 	}
 	t.Feed(old.Snapshot())
 	t.Feed([]byte("\x1b[0m\r\n"))
-	s.term, s.lost = t, false
+	s.term, s.lost, s.ended = t, false, false
 	// A new shell: what the programs of the old one said is gone.
 	s.status = terminal.ProgramStatus{}
 	old.Close()

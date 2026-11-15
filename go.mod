@@ -10,6 +10,7 @@ tool (
 require (
 	github.com/MoeForge/moejs v0.1.0
 	github.com/alecthomas/chroma/v2 v2.27.0
+	github.com/creack/pty v1.1.24
 	github.com/ebitengine/purego v0.11.1
 	github.com/egoist/mygo v0.7.1
 	github.com/fsnotify/fsnotify v1.10.1
