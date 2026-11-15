@@ -1,4 +1,4 @@
-// Package cli is the mayoi shell command, which opens folders and files
+// Package cli is the vibe shell command, which opens folders and files
 // in the app and runs its commands: it installs and uninstalls the
 // command, reads its arguments, and carries them to the running app over
 // a socket.
@@ -18,27 +18,27 @@ import (
 )
 
 // bundleID is the app's identifier, as mygo.json gives it.
-const bundleID = "dev.mayoi.editor"
+const bundleID = "dev.vibe.editor"
 
-// scriptMark is text in the mayoi command, by which uninstalling knows it.
-const scriptMark = "Installed by Mayoi: File > Install 'mayoi' Command."
+// scriptMark is text in the vibe command, by which uninstalling knows it.
+const scriptMark = "Installed by Vibe: File > Install 'vibe' Command."
 
-// script is the mayoi command. It runs the app's own executable, which,
-// told so by MAYOI_CLI, asks the running app over its socket, or starts
+// script is the vibe command. It runs the app's own executable, which,
+// told so by VIBE_CLI, asks the running app over its socket, or starts
 // it. On macOS, app is its .app, else the system finds it by identifier,
-// so it keeps working when the app moves; on Windows, app is Mayoi.exe.
+// so it keeps working when the app moves; on Windows, app is Vibe.exe.
 func script(app string) string {
 	if runtime.GOOS == "windows" {
 		// A percent is doubled in a batch file, and delayed expansion would
 		// consume exclamation marks in the executable's path.
 		app = strings.ReplaceAll(app, "%", "%%")
 		return strings.ReplaceAll(`@echo off
-REM mayoi [options] [folder or file]... opens them in Mayoi: mayoi --help says more.
+REM vibe [options] [folder or file]... opens them in Vibe: vibe --help says more.
 REM `+scriptMark+`
 setlocal DisableDelayedExpansion
-set "MAYOI_CLI=1"
+set "VIBE_CLI=1"
 if not exist "`+app+`" (
-	echo mayoi: Mayoi.exe is not found. Run File ^> Install 'mayoi' Command again. 1>&2
+	echo vibe: Vibe.exe is not found. Run File ^> Install 'vibe' Command again. 1>&2
 	exit /b 1
 )
 "`+app+`" %*
@@ -46,17 +46,17 @@ exit /b %ERRORLEVEL%
 `, "\n", "\r\n")
 	}
 	return `#!/bin/sh
-# mayoi [options] [folder or file]... opens them in Mayoi: mayoi --help says more.
+# vibe [options] [folder or file]... opens them in Vibe: vibe --help says more.
 # ` + scriptMark + `
 app=` + shellQuote(app) + `
-if [ ! -x "$app/Contents/MacOS/Mayoi" ]; then
+if [ ! -x "$app/Contents/MacOS/Vibe" ]; then
 	app=$(mdfind "kMDItemCFBundleIdentifier == '` + bundleID + `'" 2>/dev/null | head -n 1)
 fi
-if [ ! -x "$app/Contents/MacOS/Mayoi" ]; then
-	echo "mayoi: Mayoi.app is not found" >&2
+if [ ! -x "$app/Contents/MacOS/Vibe" ]; then
+	echo "vibe: Vibe.app is not found" >&2
 	exit 1
 fi
-MAYOI_CLI=1 exec "$app/Contents/MacOS/Mayoi" "$@"
+VIBE_CLI=1 exec "$app/Contents/MacOS/Vibe" "$@"
 `
 }
 
@@ -64,21 +64,21 @@ MAYOI_CLI=1 exec "$app/Contents/MacOS/Mayoi" "$@"
 // shell script elsewhere.
 func commandPath(dir string) string {
 	if runtime.GOOS == "windows" {
-		return filepath.Join(dir, "mayoi.cmd")
+		return filepath.Join(dir, "vibe.cmd")
 	}
-	return filepath.Join(dir, "mayoi")
+	return filepath.Join(dir, "vibe")
 }
 
-// installDir is Mayoi's own Windows command folder, not another tool's.
+// installDir is Vibe's own Windows command folder, not another tool's.
 func installDir(home string) string {
 	if local := os.Getenv("LOCALAPPDATA"); local != "" {
-		return filepath.Join(local, "Mayoi", "bin")
+		return filepath.Join(local, "Vibe", "bin")
 	}
-	return filepath.Join(home, "AppData", "Local", "Mayoi", "bin")
+	return filepath.Join(home, "AppData", "Local", "Vibe", "bin")
 }
 
 // Dirs are installation folders the command interpreter searches. Windows
-// uses Mayoi's own folder, which AddToUserPath puts on the user's PATH;
+// uses Vibe's own folder, which AddToUserPath puts on the user's PATH;
 // elsewhere the known user folders come first, then the system-wide one.
 func Dirs(home string, path []string) []string {
 	if runtime.GOOS == "windows" {
@@ -120,13 +120,13 @@ func InstalledDirs(home string, path []string) []string {
 // ErrCanceled is the user declining to give the password.
 var ErrCanceled = errors.New("canceled")
 
-// Install writes the mayoi command of the app at app into the first
+// Install writes the vibe command of the app at app into the first
 // of dirs that takes it, and returns where it went. Only /usr/local/bin
 // may request administrator privileges, after every destination was tried.
 func Install(dirs []string, app string) (string, error) {
 	guidance := "add ~/.local/bin to your shell's PATH and try again"
 	if runtime.GOOS == "windows" {
-		guidance = `check that %LOCALAPPDATA%\Mayoi\bin is writable and try again`
+		guidance = `check that %LOCALAPPDATA%\Vibe\bin is writable and try again`
 	}
 	var candidates, installed []string
 	// Check every candidate before writing, so another program's command
@@ -176,13 +176,13 @@ func Install(dirs []string, app string) (string, error) {
 	// the traditional system-wide destination when it is on PATH.
 	if admin {
 		if err = writeAsAdmin("/usr/local/bin", app); err == nil {
-			return "/usr/local/bin/mayoi", nil
+			return "/usr/local/bin/vibe", nil
 		}
 		if errors.Is(err, ErrCanceled) {
 			return "", err
 		}
 	}
-	return "", fmt.Errorf("could not install mayoi; %s: %w", guidance, err)
+	return "", fmt.Errorf("could not install vibe; %s: %w", guidance, err)
 }
 
 func write(dir, app string) error {
@@ -198,7 +198,7 @@ func write(dir, app string) error {
 }
 
 func writeAsAdmin(dir, app string) error {
-	f, err := os.CreateTemp("", "mayoi-*")
+	f, err := os.CreateTemp("", "vibe-*")
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func writeAsAdmin(dir, app string) error {
 }
 
 // Refresh writes the command of the app at app over the copies of
-// Mayoi's in dirs that an older Mayoi wrote, where no password is needed.
+// Vibe's in dirs that an older Vibe wrote, where no password is needed.
 func Refresh(dirs []string, app string) {
 	for _, dir := range dirs {
 		p := commandPath(dir)
@@ -228,7 +228,7 @@ func Refresh(dirs []string, app string) {
 	}
 }
 
-// Uninstall removes the mayoi command from dirs, where it is Mayoi's,
+// Uninstall removes the vibe command from dirs, where it is Vibe's,
 // and returns where it was.
 func Uninstall(dirs []string) ([]string, error) {
 	var removed []string
@@ -286,7 +286,7 @@ func LoginPath() []string {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	const mark = "MAYOI_PATH="
+	const mark = "VIBE_PATH="
 	// printenv preserves PATH's colon separators in fish as well as sh/zsh.
 	// A shell may exit non-zero after printing; keep any usable output.
 	out, _ := exec.CommandContext(ctx, sh, "-ilc", `printf '`+mark+`'; /usr/bin/printenv PATH`).Output()

@@ -1,4 +1,4 @@
-module mayoi
+module vibe
 
 go 1.27.3
 

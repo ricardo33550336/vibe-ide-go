@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"mayoi/internal/settings"
+	"vibe/internal/settings"
 )
 
-// prefs lines are what mayoi settings prints: a key, a tab, a value of
+// prefs lines are what vibe settings prints: a key, a tab, a value of
 // JSON.
 func prefsLines(t *testing.T, out string) map[string]string {
 	t.Helper()
@@ -79,7 +79,7 @@ func TestSettingsListNoFile(t *testing.T) {
 func TestSettingsGet(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "settings.json")
-	// A value the file holds to the wrong type is the default, as Mayoi
+	// A value the file holds to the wrong type is the default, as Vibe
 	// has it, and a value out of its bounds is in them.
 	putFile(t, path, `{"fontSize": 100, "theme": "claude", "vim": "yes"}`)
 	out, err := Settings{Verb: "get", Keys: []string{"theme", "fontSize", "vim"}}.Do(path)
@@ -90,7 +90,7 @@ func TestSettingsGet(t *testing.T) {
 		t.Errorf("got %q, want %q", out, want)
 	}
 	if _, err := (Settings{Verb: "get", Keys: []string{"theme", "nope"}}).Do(path); err == nil || !strings.Contains(err.Error(), `"nope"`) {
-		t.Errorf("get of a key Mayoi has none of: %v", err)
+		t.Errorf("get of a key Vibe has none of: %v", err)
 	}
 }
 
@@ -150,8 +150,8 @@ func TestSettingsSetWrong(t *testing.T) {
 		{"theme", "nope", `"", "matrix", "claude", "qoder", "grokbot", "cursor", "purplegold", "pumpkin", "witchsbrew", "bloodmoon" or "gtavi"`},
 		{"fontFeatures", "calt=0", `a list of text`},
 		{"projectTabStyle", "[]", "the looks of the projects on the rail"},
-		{"vim", "null", "mayoi settings unset vim"},
-		{"fontFamily", "null", "mayoi settings unset fontFamily"},
+		{"vim", "null", "vibe settings unset vim"},
+		{"fontFamily", "null", "vibe settings unset fontFamily"},
 	} {
 		dir := t.TempDir()
 		path := filepath.Join(dir, "settings.json")
@@ -197,7 +197,7 @@ func TestSettingsNoChange(t *testing.T) {
 		t.Errorf("the file is %s", got)
 	}
 	if _, err := (Settings{Verb: "nope"}).Do(path); err == nil {
-		t.Error("a verb Mayoi has none of took the file")
+		t.Error("a verb Vibe has none of took the file")
 	}
 }
 
@@ -220,7 +220,7 @@ func TestSettingsUnset(t *testing.T) {
 		t.Errorf("got %s", data)
 	}
 	if _, err := (Settings{Verb: "unset", Changes: []Change{{Op: OpUnset, Key: "nope"}}}).Do(path); err == nil {
-		t.Error("unset of a key Mayoi has none of took it")
+		t.Error("unset of a key Vibe has none of took it")
 	}
 }
 
@@ -253,10 +253,10 @@ func TestFolderFile(t *testing.T) {
 	if err := os.MkdirAll(sub, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := folderFile(sub), filepath.Join(sub, ".mayoi", "settings.json"); got != want {
+	if got, want := folderFile(sub), filepath.Join(sub, ".vibe", "settings.json"); got != want {
 		t.Errorf("with no file: %s, want %s", got, want)
 	}
-	path := filepath.Join(dir, ".mayoi", "settings.json")
+	path := filepath.Join(dir, ".vibe", "settings.json")
 	putFile(t, path, "{}")
 	if got := folderFile(sub); got != path {
 		t.Errorf("in a subfolder: %s, want %s", got, path)
@@ -270,7 +270,7 @@ func TestFolderFile(t *testing.T) {
 // choose, and those others in it are left as they are.
 func TestSettingsFolder(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, ".mayoi", "settings.json")
+	path := filepath.Join(dir, ".vibe", "settings.json")
 	putFile(t, path, `{"vim": true, "mine": "kept"}`)
 	if out, err := (Settings{Folder: true}).Do(path); err != nil {
 		t.Fatal(err)
@@ -299,7 +299,7 @@ func TestSettingsFolder(t *testing.T) {
 	// A preference the folder does not choose prints null, so each line
 	// is still its key's.
 	if out, err := (Settings{Folder: true, Verb: "get", Keys: []string{"nope", "vim"}}).Do(path); err == nil {
-		t.Errorf("get of a key Mayoi has none of: %q", out)
+		t.Errorf("get of a key Vibe has none of: %q", out)
 	}
 	if out, err := (Settings{Folder: true, Verb: "get", Keys: []string{"wordWrap", "vim"}}).Do(path); err != nil || out != "null\ntrue\n" {
 		t.Errorf("get of one the folder does not choose: %q, %v", out, err)
@@ -314,10 +314,10 @@ func TestSettingsFolder(t *testing.T) {
 	}
 	// A folder without a file chooses nothing, and its file is made.
 	other := filepath.Join(dir, "other")
-	if out, err := (Settings{Folder: true}).Do(filepath.Join(other, ".mayoi", "settings.json")); err != nil || out != "" {
+	if out, err := (Settings{Folder: true}).Do(filepath.Join(other, ".vibe", "settings.json")); err != nil || out != "" {
 		t.Errorf("list of a folder without a file: %q, %v", out, err)
 	}
-	path = filepath.Join(other, ".mayoi", "settings.json")
+	path = filepath.Join(other, ".vibe", "settings.json")
 	if _, err := (Settings{Folder: true, Verb: "set", Changes: []Change{{Op: OpSet, Key: "vim", Value: json.RawMessage("true")}}}).Do(path); err != nil {
 		t.Fatal(err)
 	}
@@ -349,7 +349,7 @@ func TestClientSettings(t *testing.T) {
 	if status, _ := c.Run([]string{"settings", "--folder", "set", "autoSave=false"}, dir, &out, &errs); status != 0 {
 		t.Fatalf("folder set: %d, %s", status, errs.String())
 	}
-	if got, err := os.ReadFile(filepath.Join(dir, ".mayoi", "settings.json")); err != nil || !strings.Contains(string(got), `"autoSave": false`) {
+	if got, err := os.ReadFile(filepath.Join(dir, ".vibe", "settings.json")); err != nil || !strings.Contains(string(got), `"autoSave": false`) {
 		t.Errorf("the folder's file: %s, %v", got, err)
 	}
 	// The status 1 of a preference that fails, and its words.
@@ -357,7 +357,7 @@ func TestClientSettings(t *testing.T) {
 	if status, _ := c.Run([]string{"settings", "set", "nope=1"}, dir, &out, &errs); status != 1 {
 		t.Errorf("a wrong preference: %d", status)
 	}
-	if !strings.HasPrefix(errs.String(), "mayoi: no preference \"nope\"") {
+	if !strings.HasPrefix(errs.String(), "vibe: no preference \"nope\"") {
 		t.Errorf("said %q", errs.String())
 	}
 }

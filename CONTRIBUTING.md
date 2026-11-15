@@ -3,14 +3,14 @@
 ## Development
 
 ```sh
-scripts/dev.sh                                              # run Mayoi Dev with live reload, with its own settings
-scripts/test.sh                                             # the tests, cmd/mayoi's over every core, as CI runs them
+scripts/dev.sh                                              # run Vibe Dev with live reload, with its own settings
+scripts/test.sh                                             # the tests, cmd/vibe's over every core, as CI runs them
 scripts/test.sh -full                                       # and the tests that start a shell
-RUN=TestMerge scripts/test.sh                               # only cmd/mayoi's tests whose names match
+RUN=TestMerge scripts/test.sh                               # only cmd/vibe's tests whose names match
 go tool staticcheck ./...                                   # the lint CI runs, with gofmt -l .
 go test ./...                                               # headless UI tests, one after another
 go test -short ./...                                        # skip the tests that start a shell
-go test -short -run XXX -bench Frame ./cmd/mayoi            # benchmark an editor frame
+go test -short -run XXX -bench Frame ./cmd/vibe            # benchmark an editor frame
 scripts/screenshots/shoot.sh                                # redraw the README screenshots
 go run ./tools/icongen                                      # redraw resources/icon.png
 ```
@@ -18,7 +18,7 @@ go run ./tools/icongen                                      # redraw resources/i
 `scripts/screenshots/shoot.sh` takes every feature, in dark and light, into `build/screenshots/raw`, frames them on
 gradients in `build/screenshots/framed`, and puts the README's, 1600 pixels wide, in `docs/screenshots`. It needs
 macOS, Python with Pillow and `pngquant`. To take one feature's shots, run
-`FSHOTS=<dir> go test -run TestFeatColumns ./cmd/mayoi`.
+`FSHOTS=<dir> go test -run TestFeatColumns ./cmd/vibe`.
 
 ## Releasing
 
@@ -31,7 +31,7 @@ scripts/bump.sh patch    # or minor, major, or a version such as 0.2.0
 It sets the version in `mygo.json`, renames `## Unreleased` to `## <version>` in `CHANGELOG.md`, commits and tags `v<version>`, and after asking pushes `main` and the tag. The
 [Release workflow](.github/workflows/release.yml) then builds macOS (arm64 and Intel, signed and notarized), Windows and
 Linux, uploads them with their signed updates, and publishes the release. Installed apps check for it every hour and
-show it in the status bar, or from **Mayoi → Check for Updates…**; the update window shows the changelog section.
+show it in the status bar, or from **Vibe → Check for Updates…**; the update window shows the changelog section.
 
 The workflow needs these repository secrets:
 
@@ -46,7 +46,7 @@ The workflow needs these repository secrets:
 Local builds stay signed ad hoc; only the workflow signs with the Developer ID. Windows builds are not signed.
 
 The repository also serves as the Homebrew tap. After publishing a release, the workflow downloads both signed
-disk images, updates `Casks/mayoi.rb` with their version and SHA-256 checksums, and commits it to `main`.
+disk images, updates `Casks/vibe.rb` with their version and SHA-256 checksums, and commits it to `main`.
 The repository must allow GitHub Actions to push to `main`. To retry an update locally, run
 `sh scripts/update-homebrew.sh <version>` and commit the changed cask.
 

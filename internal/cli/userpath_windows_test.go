@@ -6,7 +6,7 @@ import (
 )
 
 func TestEditPath(t *testing.T) {
-	dir := `C:\Users\Me\AppData\Local\Mayoi\bin`
+	dir := `C:\Users\Me\AppData\Local\Vibe\bin`
 	duplicate := `%USERPROFILE%\bin;` + strings.ToUpper(dir)
 	for _, tt := range []struct {
 		name, value string

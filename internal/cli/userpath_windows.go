@@ -12,10 +12,10 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-// AddToUserPath puts Mayoi's command folder on the user's PATH.
+// AddToUserPath puts Vibe's command folder on the user's PATH.
 func AddToUserPath(home string) error { return updateUserPath(installDir(home), true) }
 
-// RemoveFromUserPath takes Mayoi's command folder off the user's PATH.
+// RemoveFromUserPath takes Vibe's command folder off the user's PATH.
 func RemoveFromUserPath(home string) error { return updateUserPath(installDir(home), false) }
 
 func updateUserPath(dir string, add bool) error {
@@ -47,7 +47,7 @@ func updateUserPath(dir string, add bool) error {
 		defer broadcastEnvironmentChange()
 	}
 	if err := os.Setenv("PATH", editPath(os.Getenv("PATH"), dir, add)); err != nil {
-		return fmt.Errorf("update Mayoi's process PATH: %w", err)
+		return fmt.Errorf("update Vibe's process PATH: %w", err)
 	}
 	return nil
 }

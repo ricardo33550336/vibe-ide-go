@@ -8,7 +8,7 @@ area, so every column showing a file shares its text and history. This page walk
 ## Windows and commands
 
 **`main.go`, `ipc.go`, `internal/cli`.** These manage the windows. Folders and files reach the app in three ways. The
-`mayoi` command is the app's own executable, which on macOS the installed script runs with `MAYOI_CLI` set, and which
+`vibe` command is the app's own executable, which on macOS the installed script runs with `VIBE_CLI` set, and which
 on Linux is the command itself: it reads its options (`cli.Parse`), and sends them as JSON over a Unix socket in the
 data folder, which the running app listens on, to `serve` on the main thread. The reply is what to print, or what went
 wrong, and with `--wait` it comes once the files are closed. With no app running, the command starts it, and sends what
@@ -264,12 +264,12 @@ match, then reads those and matches them here, as it does local files, so that b
 
 ## Plugins
 
-**`internal/plugin`.** A plugin is a folder with a `plugin.json` and an entry module, in `~/.mayoi/plugins`, in the
-app as a bundled one (`plugins/`, embedded), or a user script of `~/.mayoi/scripts`. The `Registry` reads their
+**`internal/plugin`.** A plugin is a folder with a `plugin.json` and an entry module, in `~/.vibe/plugins`, in the
+app as a bundled one (`plugins/`, embedded), or a user script of `~/.vibe/scripts`. The `Registry` reads their
 manifests, which say what each adds without running it, and starts a plugin only as something it names happens: a
 command of its, a document of a language, a view. Each running plugin has a [moejs](https://github.com/MoeForge/moejs)
 runtime and an event loop of its own, on a goroutine of its own (`runtime.go`, the only file of the package that
-imports moejs). `prelude.js` builds the `mayoi` module over a few host functions, and the app calls the plugin through
+imports moejs). `prelude.js` builds the `vibe` module over a few host functions, and the app calls the plugin through
 a dispatch function the prelude binds, with JSON both ways. A watchdog stops JavaScript that runs 10 s without a break,
 moejs's limit stops a plugin that keeps 256 MiB, and a plugin that stops three times in a row stays off until reloaded.
 Imports are its own files and "mayoi"; `eval` is off. The folders are watched, and a plugin whose files changed starts
@@ -318,4 +318,4 @@ These figures come from the tests, run on an M-series Mac:
 
 `TestBudgets` in `budget_test.go` holds the cost of a frame to a budget, a few times these figures to allow for
 a slower machine: idle, scrolling and typing, typing with find open, quick open, the palette, the Sessions view of
-2,000 sessions scrolled, hovered and filtered, and a terminal printing as fast as it can. CI runs it on macOS for every pull request (`MAYOI_BUDGETS=1`).
+2,000 sessions scrolled, hovered and filtered, and a terminal printing as fast as it can. CI runs it on macOS for every pull request (`VIBE_BUDGETS=1`).

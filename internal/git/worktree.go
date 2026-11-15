@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"mayoi/internal/remote"
-	"mayoi/internal/vfs"
+	"vibe/internal/remote"
+	"vibe/internal/vfs"
 )
 
 // WorktreeInUse reports a branch checked out in another worktree.

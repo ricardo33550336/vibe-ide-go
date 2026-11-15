@@ -11,7 +11,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"mayoi/internal/vfs"
+	"vibe/internal/vfs"
 )
 
 // MaxIndexed is the most files the index holds.

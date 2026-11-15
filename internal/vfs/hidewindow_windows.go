@@ -10,7 +10,7 @@ import (
 const createNoWindow = 0x08000000
 
 // hideWindow keeps Windows from giving cmd a console window of its own.
-// Mayoi is a window that has no console, and Windows answers every
+// Vibe is a window that has no console, and Windows answers every
 // console program a console program starts, git above all, with a new
 // console window on the desktop, so that a window opens and closes
 // around each command the editor runs. HideWindow covers the window a

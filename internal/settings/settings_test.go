@@ -443,7 +443,7 @@ func TestTerminalLocation(t *testing.T) {
 	}
 }
 
-// A terminal runs in Mayoi unless the file says "hc".
+// A terminal runs in Vibe unless the file says "hc".
 func TestTerminalBackend(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	for in, want := range map[string]string{"": "", "hc": "hc", "herdr": "", "HC": ""} {

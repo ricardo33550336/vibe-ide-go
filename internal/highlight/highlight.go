@@ -82,7 +82,7 @@ var vue = sync.OnceValue(func() chroma.Lexer {
 	return chroma.Coalesce(chroma.MustNewXMLLexer(vueXML, "vue.xml"))
 })
 
-// LexerName, when set, names the lexer of a file before Mayoi's own
+// LexerName, when set, names the lexer of a file before Vibe's own
 // choice, "" to leave it to that: the languages plugins declare.
 var LexerName func(path string) string
 
@@ -98,7 +98,7 @@ func Lexer(path string) chroma.Lexer {
 	name := filepath.Base(path)
 	// Names Chroma gets wrong, or does not know: go.mod is not AMPL, .sql
 	// is any SQL, not MySQL's, .vue needs the fixed lexer above, and
-	// Markdown the one with Mayoi's inline marks.
+	// Markdown the one with Vibe's inline marks.
 	switch strings.ToLower(name) {
 	case "go.mod", "go.work", "go.sum":
 		return nil

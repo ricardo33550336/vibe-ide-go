@@ -10,7 +10,7 @@ out=$(cd "${1:-build/screenshots}" && pwd)
 rm -rf "$out/raw" "$out/framed"
 mkdir -p "$out/raw" docs/screenshots
 
-FSHOTS="$out/raw" go test -count=1 -run '^TestFeat' ./cmd/mayoi
+FSHOTS="$out/raw" go test -count=1 -run '^TestFeat' ./cmd/vibe
 python3 scripts/screenshots/compose.py "$out/raw" "$out/framed"
 
 # readme <shot> <name> puts a shot, 1600 pixels wide, in docs/screenshots.

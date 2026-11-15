@@ -12,12 +12,12 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-// TypesSource is mayoi.d.ts, the types of the mayoi module.
+// TypesSource is vibe.d.ts, the types of the vibe module.
 //
-//go:embed mayoi.d.ts
+//go:embed vibe.d.ts
 var TypesSource string
 
-// AgentsSource is the AGENTS.md mayoi plugin new writes, for agents that
+// AgentsSource is the AGENTS.md vibe plugin new writes, for agents that
 // write plugins.
 //
 //go:embed agents.md

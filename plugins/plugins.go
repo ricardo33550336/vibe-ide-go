@@ -1,5 +1,5 @@
-// Package plugins holds the plugins Mayoi comes with, a folder each, which
-// the app embeds and runs as it runs the plugins of ~/.mayoi/plugins.
+// Package plugins holds the plugins Vibe comes with, a folder each, which
+// the app embeds and runs as it runs the plugins of ~/.vibe/plugins.
 package plugins
 
 import "embed"

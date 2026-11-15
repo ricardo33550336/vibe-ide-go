@@ -1,11 +1,11 @@
-// The mayoi module, as every plugin's runtime has it before the plugin's
-// own code runs. It is built on the host's few functions, __mayoiHost:
+// The vibe module, as every plugin's runtime has it before the plugin's
+// own code runs. It is built on the host's few functions, __vibeHost:
 // call (async, to the app), callSync (to the registry), reply, bind and
 // log. Values cross as JSON text.
 (function () {
   "use strict";
-  const host = globalThis.__mayoiHost;
-  delete globalThis.__mayoiHost;
+  const host = globalThis.__vibeHost;
+  delete globalThis.__vibeHost;
   const enc = (v) => (v === undefined ? "null" : JSON.stringify(v));
   const call = (method, args) => host.call(method, enc(args ?? {}));
   const callSync = (method, args) => host.callSync(method, enc(args ?? {}));
@@ -106,7 +106,7 @@
     };
   }
 
-  const mayoi = {
+  const vibe = {
     version: callSync("app.version"),
     platform: callSync("app.platform"),
     log,
@@ -163,8 +163,8 @@
     settings: {
       get: (key) => callSync("settings.get", { key }),
       all: () => callSync("settings.all"),
-      mayoi: (key) => callSync("settings.mayoi", { key }),
-      onChange: (fn) => mayoi.events.on("settings.changed", fn),
+      vibe: (key) => callSync("settings.vibe", { key }),
+      onChange: (fn) => vibe.events.on("settings.changed", fn),
     },
     storage: {
       get: (key, opts) => callSync("storage.get", { key, folder: !!opts?.folder }),
@@ -254,8 +254,8 @@
       complete: (prompt, opts) => call("ai.complete", { prompt, system: opts?.system }),
     },
   };
-  Object.freeze(mayoi);
-  globalThis.__mayoi = mayoi;
+  Object.freeze(vibe);
+  globalThis.__vibe = vibe;
 
   // dispatch is how the host calls the plugin: with an id to reply to, a
   // kind, and its payload as JSON text.
@@ -320,7 +320,7 @@
       }
       case "call": {
         // An export of the entry module, as a user script's commands.
-        const fn = globalThis.__mayoiExports?.[p.name];
+        const fn = globalThis.__vibeExports?.[p.name];
         if (typeof fn !== "function") throw new Error(`${p.name} is not an exported function`);
         return (await fn(p.arg)) ?? null;
       }

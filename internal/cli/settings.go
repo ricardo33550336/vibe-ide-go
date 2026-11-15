@@ -12,12 +12,12 @@ import (
 	"slices"
 	"strings"
 
-	"mayoi/internal/settings"
+	"vibe/internal/settings"
 )
 
-// doSettings does what a mayoi settings asks and returns the command's
+// doSettings does what a vibe settings asks and returns the command's
 // status: with the person's preferences, or with those of the folder the
-// command ran in, in its .mayoi/settings.json.
+// command ran in, in its .vibe/settings.json.
 func doSettings(c Client, req Request, stdout, stderr io.Writer) int {
 	path := c.SettingsPath
 	if req.Settings.Folder {
@@ -25,14 +25,14 @@ func doSettings(c Client, req Request, stdout, stderr io.Writer) int {
 	}
 	out, err := req.Settings.Do(path)
 	if err != nil {
-		fmt.Fprintf(stderr, "mayoi: %v\n", err)
+		fmt.Fprintf(stderr, "vibe: %v\n", err)
 		return 1
 	}
 	fmt.Fprint(stdout, out)
 	return 0
 }
 
-// folderFile is the folder's own settings' file that a mayoi settings
+// folderFile is the folder's own settings' file that a vibe settings
 // --folder run in cwd acts on: that of the nearest folder up from cwd
 // that has one, as a project's subfolder is in the project, else cwd's.
 func folderFile(cwd string) string {
@@ -49,11 +49,11 @@ func folderFile(cwd string) string {
 	}
 }
 
-// Do does what a mayoi settings asks with the preferences kept in the
+// Do does what a vibe settings asks with the preferences kept in the
 // file at path, the person's settings.json or a folder's
-// .mayoi/settings.json, and returns what to print. It changes the file
+// .vibe/settings.json, and returns what to print. It changes the file
 // itself, a preference at a time, keeping the ones it does not change as
-// the file has them; a Mayoi running reads the file again, as it does one
+// the file has them; a Vibe running reads the file again, as it does one
 // a person saves.
 func (s Settings) Do(path string) (string, error) {
 	values, err := readPrefs(path)
@@ -66,9 +66,9 @@ func (s Settings) Do(path string) (string, error) {
 	case s.Verb == "list" || s.Verb == "":
 		return listPrefs(values, s.Folder), nil
 	case s.Verb != "set" && s.Verb != "unset":
-		return "", fmt.Errorf("no settings command %q: mayoi settings lists, gets, sets or unsets them", s.Verb)
+		return "", fmt.Errorf("no settings command %q: vibe settings lists, gets, sets or unsets them", s.Verb)
 	case len(s.Changes) == 0:
-		return "", fmt.Errorf("%s needs a preference: mayoi settings lists them", s.Verb)
+		return "", fmt.Errorf("%s needs a preference: vibe settings lists them", s.Verb)
 	}
 	// The changes are all made in a copy, of the file as it is, and
 	// written once every one of them is one the preferences take.
@@ -229,7 +229,7 @@ func parseTarget(key string, folder bool) (prefTarget, error) {
 // '<folder>', and the quotes are no part of it.
 func splitKey(key string) ([]string, error) {
 	if key == "" {
-		return nil, errors.New("no preference: mayoi settings lists them")
+		return nil, errors.New("no preference: vibe settings lists them")
 	}
 	var segs []string
 	var b strings.Builder
@@ -455,9 +455,9 @@ func known(key string, folder bool) (settings.Field, error) {
 	f, ok := settings.FieldOf(key)
 	switch {
 	case !ok:
-		return f, fmt.Errorf("no preference %q: mayoi settings lists them", key)
+		return f, fmt.Errorf("no preference %q: vibe settings lists them", key)
 	case folder && !f.Folder:
-		return f, fmt.Errorf("%s is not a preference a folder chooses: mayoi settings lists them", key)
+		return f, fmt.Errorf("%s is not a preference a folder chooses: vibe settings lists them", key)
 	}
 	return f, nil
 }
@@ -540,9 +540,9 @@ func samePrefs(x, y map[string]json.RawMessage) bool {
 	return maps.EqualFunc(x, y, func(a, b json.RawMessage) bool { return bytes.Equal(a, b) })
 }
 
-// prefsOf returns the preferences of values as Mayoi has them, those the
+// prefsOf returns the preferences of values as Vibe has them, those the
 // file leaves out at their default, and those it holds to the wrong type
-// too, as a folder's file may. The keys Mayoi has none of are left out.
+// too, as a folder's file may. The keys Vibe has none of are left out.
 func prefsOf(values map[string]json.RawMessage) settings.Prefs {
 	p := settings.Default().Prefs
 	for key, raw := range values {
@@ -610,7 +610,7 @@ func hasPref(values map[string]json.RawMessage, key string) bool {
 }
 
 // checked checks the value of the preference of f and returns it as the
-// settings' file keeps it, in its bounds and its options, as Mayoi makes
+// settings' file keeps it, in its bounds and its options, as Vibe makes
 // it.
 func checked(f settings.Field, raw json.RawMessage) (json.RawMessage, error) {
 	if len(raw) == 0 {
@@ -620,7 +620,7 @@ func checked(f settings.Field, raw json.RawMessage) (json.RawMessage, error) {
 	// null is no value of a preference, which would be written as its
 	// default: unset is what takes it away.
 	if string(bytes.TrimSpace(raw)) == "null" {
-		return nil, fmt.Errorf("%s takes %s, not null: mayoi settings unset %s gives it its value of a first launch", f.Key, wants(f), f.Key)
+		return nil, fmt.Errorf("%s takes %s, not null: vibe settings unset %s gives it its value of a first launch", f.Key, wants(f), f.Key)
 	}
 	// The value is checked as given: a number out of its bounds is no
 	// value of it, rather than the bound it would be kept to.

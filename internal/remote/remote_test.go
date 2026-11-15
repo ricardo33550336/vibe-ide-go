@@ -62,7 +62,7 @@ func TestParseURL(t *testing.T) {
 }
 
 func TestCheckHost(t *testing.T) {
-	for _, ok := range []string{"box", "me@box", "box:22", "me@10.0.0.1:2200", "[::1]:22", "mayoi-test@orb"} {
+	for _, ok := range []string{"box", "me@box", "box:22", "me@10.0.0.1:2200", "[::1]:22", "vibe-test@orb"} {
 		if err := CheckHost(ok); err != nil {
 			t.Errorf("%q: %v", ok, err)
 		}
@@ -147,12 +147,12 @@ func TestParseDirs(t *testing.T) {
 	}
 }
 
-// TestHost runs the commands on a real host, which MAYOI_SSH_TEST_HOST
+// TestHost runs the commands on a real host, which VIBE_SSH_TEST_HOST
 // names, as "user@host": one ssh signs in to without a password.
 func TestHost(t *testing.T) {
-	host := os.Getenv("MAYOI_SSH_TEST_HOST")
+	host := os.Getenv("VIBE_SSH_TEST_HOST")
 	if host == "" {
-		t.Skip("MAYOI_SSH_TEST_HOST is not set")
+		t.Skip("VIBE_SSH_TEST_HOST is not set")
 	}
 	exerciseHost(t, host)
 }
@@ -218,7 +218,7 @@ func exerciseHost(t *testing.T, host string) {
 	if info.Home == "" || info.OS == "" {
 		t.Fatalf("info = %+v", info)
 	}
-	out, err := c.Run(nil, `mktemp -d "${TMPDIR:-/tmp}/mayoi-test.XXXXXX"`)
+	out, err := c.Run(nil, `mktemp -d "${TMPDIR:-/tmp}/vibe-test.XXXXXX"`)
 	if err != nil {
 		t.Fatal(err)
 	}

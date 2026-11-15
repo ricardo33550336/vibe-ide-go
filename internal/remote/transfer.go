@@ -184,8 +184,8 @@ func (c *Conn) Upload(srcs []string, dir string, p *Progress) ([]string, error) 
 		pw.CloseWithError(writeTar(&counter{w: pw, p: p}, srcs))
 	}()
 	script := `dir=$1; shift
-if [ -z "$dir" ]; then dir=$(mktemp -d "${TMPDIR:-/tmp}/mayoi-paste.XXXXXX") || exit 1; fi
-s=$(mktemp -d "$dir/.mayoi-paste.XXXXXX") || exit 1
+if [ -z "$dir" ]; then dir=$(mktemp -d "${TMPDIR:-/tmp}/vibe-paste.XXXXXX") || exit 1; fi
+s=$(mktemp -d "$dir/.vibe-paste.XXXXXX") || exit 1
 trap 'rm -rf "$s"' EXIT
 trap 'exit 1' HUP INT TERM PIPE
 tar -x -o -f - -C "$s" || exit 1

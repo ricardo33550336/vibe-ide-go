@@ -2,14 +2,14 @@
 
 ## Commits
 
-- One imperative subject line of 72 characters or fewer, for one change: `Add mayoi run and mayoi commands`.
+- One imperative subject line of 72 characters or fewer, for one change: `Add vibe run and vibe commands`.
 - Put any detail in a short body, not the subject.
 - Dont run full test since its slow.
 
 ## Design
 
 - Follow docs/DESIGN.md for motion, layout stability, states, speed, failures and words.
-- Take animation lengths from the tokens in cmd/mayoi/motion.go, never a number written out.
+- Take animation lengths from the tokens in cmd/vibe/motion.go, never a number written out.
 
 ## Changelog
 

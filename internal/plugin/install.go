@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-// RecordsFile is the file in the plugins folder where Mayoi notes where
+// RecordsFile is the file in the plugins folder where Vibe notes where
 // each plugin it installed came from.
 const RecordsFile = "plugins.json"
 
@@ -51,8 +51,8 @@ func WriteRecords(dir string, recs Records) error {
 	return os.WriteFile(filepath.Join(dir, RecordsFile), append(data, '\n'), 0o644)
 }
 
-// IndexURL is the index of plugins, from the mayoi-editor organisation.
-var IndexURL = "https://raw.githubusercontent.com/mayoi-editor/plugins/main/index.json"
+// IndexURL is the index of plugins, from the vibe-editor organisation.
+var IndexURL = "https://raw.githubusercontent.com/vibe-editor/plugins/main/index.json"
 
 // IndexEntry is a plugin the index lists.
 type IndexEntry struct {
@@ -103,7 +103,7 @@ func FetchIndex(ctx context.Context, client *http.Client) ([]IndexEntry, error) 
 	return entries, nil
 }
 
-// SplitSpec reads what mayoi plugin install takes: a Git URL, owner/repo
+// SplitSpec reads what vibe plugin install takes: a Git URL, owner/repo
 // of GitHub, or a name of the index, each with @ref after it or not.
 func SplitSpec(spec string) (url, ref string, byName bool) {
 	if i := strings.LastIndex(spec, "@"); i > 0 && i > strings.LastIndexAny(spec, "/:") {
@@ -164,12 +164,12 @@ func Install(ctx context.Context, dir, url, ref string) (*Manifest, error) {
 	}
 	m, err := ReadManifest(tmp)
 	if err != nil {
-		return nil, fmt.Errorf("%s is not a Mayoi plugin: %v", url, err)
+		return nil, fmt.Errorf("%s is not a Vibe plugin: %v", url, err)
 	}
 	commit, _ := git(ctx, tmp, "rev-parse", "HEAD")
 	dest := filepath.Join(dir, m.Name)
 	if fi, err := os.Lstat(dest); err == nil && fi.Mode()&os.ModeSymlink != 0 {
-		return nil, fmt.Errorf("%s is linked for development by mayoi plugin dev: mayoi plugin remove %s first", m.Name, m.Name)
+		return nil, fmt.Errorf("%s is linked for development by vibe plugin dev: vibe plugin remove %s first", m.Name, m.Name)
 	}
 	old := dest + ".old"
 	os.RemoveAll(old)
@@ -251,7 +251,7 @@ func Remove(dir, name string) error {
 }
 
 // Link links a folder in development into the plugins folder, so that
-// Mayoi loads it from where it is, and again on each change.
+// Vibe loads it from where it is, and again on each change.
 func Link(dir, folder string) (*Manifest, error) {
 	abs, err := filepath.Abs(folder)
 	if err != nil {
@@ -267,7 +267,7 @@ func Link(dir, folder string) (*Manifest, error) {
 	dest := filepath.Join(dir, m.Name)
 	if fi, err := os.Lstat(dest); err == nil {
 		if fi.Mode()&os.ModeSymlink == 0 {
-			return nil, fmt.Errorf("%s is installed: mayoi plugin remove %s first", m.Name, m.Name)
+			return nil, fmt.Errorf("%s is installed: vibe plugin remove %s first", m.Name, m.Name)
 		}
 		os.Remove(dest)
 	}
@@ -317,7 +317,7 @@ func SyncInstall(ctx context.Context, dir string, want Records) (installed, remo
 }
 
 // Scaffold writes a new plugin into dir: its manifest, an entry module
-// with a command, the types of the mayoi module, and notes for agents.
+// with a command, the types of the vibe module, and notes for agents.
 func Scaffold(dir, name string) error {
 	if err := ValidName(name); err != nil {
 		return err
@@ -347,18 +347,18 @@ func Scaffold(dir, name string) error {
   }
 }
 `, name, title, author, name, name),
-		"main.ts": fmt.Sprintf(`import { commands, editor, window } from "mayoi";
+		"main.ts": fmt.Sprintf(`import { commands, editor, window } from "vibe";
 
 commands.register("%s.hello", async () => {
   const ed = await editor.active();
-  const name = ed?.document.name ?? "Mayoi";
+  const name = ed?.document.name ?? "Vibe";
   await window.notify(`+"`Hello from %s, in ${name}`"+`);
 });
 `, name, title),
-		"mayoi.d.ts": TypesSource,
+		"vibe.d.ts": TypesSource,
 		"tsconfig.json": `{
   "compilerOptions": { "target": "es2022", "module": "es2022", "strict": true, "noEmit": true },
-  "include": ["*.ts", "mayoi.d.ts"]
+  "include": ["*.ts", "vibe.d.ts"]
 }
 `,
 		"AGENTS.md":  AgentsSource,

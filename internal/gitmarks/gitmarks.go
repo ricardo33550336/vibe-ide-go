@@ -9,9 +9,9 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
-	"mayoi/internal/bg"
-	"mayoi/internal/linediff"
-	"mayoi/internal/vfs"
+	"vibe/internal/bg"
+	"vibe/internal/linediff"
+	"vibe/internal/vfs"
 )
 
 // Marks are the lines of a document changed since Git's last commit. The

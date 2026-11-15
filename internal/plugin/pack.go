@@ -26,7 +26,7 @@ type PackResult struct {
 
 // Pack copies the npm packages that the plugin in dir imports, from its
 // node_modules, into vendor/, with what they import in turn, and points
-// the imports at the copies: Mayoi loads no package at run time. Only
+// the imports at the copies: Vibe loads no package at run time. Only
 // packages of ES modules work; one of CommonJS is a warning.
 func Pack(dir string) (*PackResult, error) {
 	m, err := ReadManifest(dir)
@@ -77,12 +77,12 @@ func (p *packer) file(rel string, own bool) error {
 		return fmt.Errorf("%s: %v", rel, err)
 	}
 	if !own && (strings.Contains(src, "module.exports") || strings.Contains(src, "require(")) {
-		p.res.Warnings = append(p.res.Warnings, rel+" looks like CommonJS, which Mayoi cannot run: use the package's ES module build")
+		p.res.Warnings = append(p.res.Warnings, rel+" looks like CommonJS, which Vibe cannot run: use the package's ES module build")
 	}
 	rewrites := map[string]string{}
 	for _, spec := range mod.Requests() {
 		switch {
-		case spec == "mayoi":
+		case spec == "vibe":
 		case strings.HasPrefix(spec, "./") || strings.HasPrefix(spec, "../"):
 			target, err := p.existing(path.Join(path.Dir(rel), spec))
 			if err != nil {
@@ -92,7 +92,7 @@ func (p *packer) file(rel string, own bool) error {
 				return err
 			}
 		case strings.HasPrefix(spec, "node:"):
-			return fmt.Errorf("%s imports %q: Mayoi has no Node modules", rel, spec)
+			return fmt.Errorf("%s imports %q: Vibe has no Node modules", rel, spec)
 		default:
 			target, err := p.vendor(rel, spec)
 			if err != nil {
@@ -205,7 +205,7 @@ func (p *packer) vendorFile(orig, dest string) error {
 		return fmt.Errorf("%s: %v", dest, err)
 	}
 	if strings.Contains(src, "module.exports") || strings.Contains(src, "require(") {
-		p.res.Warnings = append(p.res.Warnings, dest+" looks like CommonJS, which Mayoi cannot run: use the package's ES module build")
+		p.res.Warnings = append(p.res.Warnings, dest+" looks like CommonJS, which Vibe cannot run: use the package's ES module build")
 	}
 	rewrites := map[string]string{}
 	for _, spec := range mod.Requests() {
@@ -243,9 +243,9 @@ func (p *packer) vendorFile(orig, dest string) error {
 			}
 			continue
 		}
-		if strings.HasPrefix(spec, "node:") || spec == "mayoi" {
-			if spec != "mayoi" {
-				return fmt.Errorf("%s imports %q: Mayoi has no Node modules", dest, spec)
+		if strings.HasPrefix(spec, "node:") || spec == "vibe" {
+			if spec != "vibe" {
+				return fmt.Errorf("%s imports %q: Vibe has no Node modules", dest, spec)
 			}
 			continue
 		}

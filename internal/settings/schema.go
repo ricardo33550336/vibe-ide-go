@@ -49,7 +49,7 @@ type Field struct {
 	Options []string
 	// Min, Max and Step bound a KindNumber.
 	Min, Max, Step float64
-	// Folder lets a folder's own .mayoi/settings.json choose the
+	// Folder lets a folder's own .vibe/settings.json choose the
 	// preference for the windows of the folder.
 	Folder bool
 	// Memory is what the windows remember, as which of Source Control's
@@ -64,6 +64,7 @@ var Schema = []Field{
 	{Key: "appearance", Category: CatAppearance, Kind: KindEnum, Options: []string{"", "light", "dark"}},
 	{Key: "zoomLevel", Category: CatAppearance, Kind: KindNumber, Min: MinZoomLevel, Max: MaxZoomLevel, Step: 0.5},
 	{Key: "sidebarRight", Category: CatAppearance, Kind: KindBool},
+	{Key: "workspaceWidth", Category: CatAppearance, Kind: KindNumber, Min: 180, Max: 420, Step: 1},
 	{Key: "explorerCompactFolders", Category: CatAppearance, Kind: KindBool},
 	{Key: "panelPosition", Category: CatAppearance, Kind: KindEnum, Options: []string{"", "left", "right"}},
 	{Key: "projectTabs", Category: CatAppearance, Kind: KindBool},

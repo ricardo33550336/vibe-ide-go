@@ -32,8 +32,8 @@ var (
 	shimModule    *moejs.Module
 )
 
-// mayoiShim is the module "mayoi", the prelude's object by its names.
-const mayoiShim = `const m = globalThis.__mayoi;
+// vibeShim is the module "vibe", the prelude's object by its names.
+const vibeShim = `const m = globalThis.__vibe;
 export const version = m.version, platform = m.platform, log = m.log, commands = m.commands,
   editor = m.editor, workspace = m.workspace, window = m.window, settings = m.settings,
   storage = m.storage, events = m.events, process = m.process, languages = m.languages,
@@ -44,9 +44,9 @@ export default m;
 
 func compilePrelude() error {
 	preludeOnce.Do(func() {
-		preludeScript, preludeErr = moejs.CompileScript("mayoi:prelude", preludeSource)
+		preludeScript, preludeErr = moejs.CompileScript("vibe:prelude", preludeSource)
 		if preludeErr == nil {
-			shimModule, preludeErr = moejs.Compile("mayoi", mayoiShim)
+			shimModule, preludeErr = moejs.Compile("vibe", vibeShim)
 		}
 	})
 	return preludeErr
@@ -120,17 +120,17 @@ func (l *loader) compile(name string) (*moejs.Module, error) {
 	return m, nil
 }
 
-// resolve finds the module a specifier names: "mayoi", or a relative path
+// resolve finds the module a specifier names: "vibe", or a relative path
 // inside the plugin's folder, with or without its extension.
 func (l *loader) resolve(ref moejs.Referrer, spec string) (*moejs.Module, error) {
-	if spec == "mayoi" {
+	if spec == "vibe" {
 		return shimModule, nil
 	}
 	if !strings.HasPrefix(spec, "./") && !strings.HasPrefix(spec, "../") {
-		return nil, fmt.Errorf("cannot import %q: plugins import \"mayoi\" and their own files; bundle packages with mayoi plugin pack", spec)
+		return nil, fmt.Errorf("cannot import %q: plugins import \"vibe\" and their own files; bundle packages with vibe plugin pack", spec)
 	}
 	from := "."
-	if ref != nil && ref.Name() != "mayoi" {
+	if ref != nil && ref.Name() != "vibe" {
 		from = path.Dir(ref.Name())
 	}
 	target := path.Join(from, spec)
@@ -191,7 +191,7 @@ func start(p *Plugin, host Host, httpClient *http.Client) (*instance, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := in.rt.SetGlobal("__mayoiHost", in.natives(host)); err != nil {
+	if err := in.rt.SetGlobal("__vibeHost", in.natives(host)); err != nil {
 		return nil, err
 	}
 	if _, err := in.rt.RunScript(preludeScript); err != nil {
@@ -214,7 +214,7 @@ func start(p *Plugin, host Host, httpClient *http.Client) (*instance, error) {
 					exports[name] = v
 				}
 			}
-			if err := rt.SetGlobal("__mayoiExports", exports); err != nil {
+			if err := rt.SetGlobal("__vibeExports", exports); err != nil {
 				ready <- err
 				in.release(nil)
 				return nil
@@ -379,7 +379,7 @@ func (in *instance) request(ctx context.Context, kind string, payload any) (json
 	}
 }
 
-// natives are the functions of __mayoiHost.
+// natives are the functions of __vibeHost.
 func (in *instance) natives(host Host) map[string]any {
 	str := func(v moejs.Value) string {
 		out, err := in.rt.ToGo(v)

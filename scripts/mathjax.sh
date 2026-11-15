@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Bundles MathJax, which draws TeX math, into cmd/mayoi/mathjax.js.gz:
-# one ES2017 script, which moejs runs, that sets the global MayoiMath, its
+# Bundles MathJax, which draws TeX math, into cmd/vibe/mathjax.js.gz:
+# one ES2017 script, which moejs runs, that sets the global VibeMath, its
 # render(tex, display) drawing a formula as SVG, its glyphs paths, with
 # MathJax's license at its top. Needs Node's npx.
 # Usage: scripts/mathjax.sh [version, 3.2.2 by default]
@@ -65,7 +65,7 @@ JS
 	sed 's/^/ * /; s/ *$//' node_modules/mathjax-full/LICENSE
 	printf ' */\n'
 } >banner.js
-npx --yes esbuild@0.25.0 entry.js --bundle --format=iife --global-name=MayoiMath \
+npx --yes esbuild@0.25.0 entry.js --bundle --format=iife --global-name=VibeMath \
 	--target=es2017 --minify --legal-comments=none --outfile=mathjax.js
-cat banner.js mathjax.js | gzip -9n >"$ROOT/cmd/mayoi/mathjax.js.gz"
-echo "MathJax $VERSION in cmd/mayoi/mathjax.js.gz ($(wc -c <"$ROOT/cmd/mayoi/mathjax.js.gz" | tr -d ' ') bytes)"
+cat banner.js mathjax.js | gzip -9n >"$ROOT/cmd/vibe/mathjax.js.gz"
+echo "MathJax $VERSION in cmd/vibe/mathjax.js.gz ($(wc -c <"$ROOT/cmd/vibe/mathjax.js.gz" | tr -d ' ') bytes)"

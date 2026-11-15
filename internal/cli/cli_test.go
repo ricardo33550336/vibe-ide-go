@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-// The mayoi command runs the app's executable with its arguments, told it
+// The vibe command runs the app's executable with its arguments, told it
 // is the command.
 func TestScript(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -19,12 +19,12 @@ func TestScript(t *testing.T) {
 	}
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "bin")
-	app := filepath.Join(dir, "My Mayoi.app")
+	app := filepath.Join(dir, "My Vibe.app")
 	moved := filepath.Join(dir, "Moved.app")
 	for _, a := range []string{app, moved} {
-		exe := filepath.Join(a, "Contents", "MacOS", "Mayoi")
+		exe := filepath.Join(a, "Contents", "MacOS", "Vibe")
 		os.MkdirAll(filepath.Dir(exe), 0o755)
-		os.WriteFile(exe, []byte("#!/bin/sh\necho \"$0\" \"$MAYOI_CLI\"\nfor a in \"$@\"; do echo \"$a\"; done\n"), 0o755)
+		os.WriteFile(exe, []byte("#!/bin/sh\necho \"$0\" \"$VIBE_CLI\"\nfor a in \"$@\"; do echo \"$a\"; done\n"), 0o755)
 	}
 	if err := write(bin, app); err != nil {
 		t.Fatal(err)
@@ -32,7 +32,7 @@ func TestScript(t *testing.T) {
 	// mdfind knows the app that moved.
 	os.WriteFile(filepath.Join(bin, "mdfind"), []byte("#!/bin/sh\necho '"+moved+"'\n"), 0o755)
 	run := func(args ...string) []string {
-		cmd := exec.Command(filepath.Join(bin, "mayoi"), args...)
+		cmd := exec.Command(filepath.Join(bin, "vibe"), args...)
 		cmd.Dir = dir
 		cmd.Env = append(os.Environ(), "PATH="+bin+":/usr/bin:/bin")
 		out, err := cmd.Output()
@@ -41,7 +41,7 @@ func TestScript(t *testing.T) {
 		}
 		return strings.Split(strings.TrimSuffix(string(out), "\n"), "\n")
 	}
-	exe := filepath.Join(app, "Contents", "MacOS", "Mayoi")
+	exe := filepath.Join(app, "Contents", "MacOS", "Vibe")
 	if got := run(); !slices.Equal(got, []string{exe + " 1"}) {
 		t.Errorf("no args: %v", got)
 	}
@@ -51,7 +51,7 @@ func TestScript(t *testing.T) {
 	}
 	os.RemoveAll(app)
 	got = run("x")
-	if want := []string{filepath.Join(moved, "Contents", "MacOS", "Mayoi") + " 1", "x"}; !slices.Equal(got, want) {
+	if want := []string{filepath.Join(moved, "Contents", "MacOS", "Vibe") + " 1", "x"}; !slices.Equal(got, want) {
 		t.Errorf("moved: got %v, want %v", got, want)
 	}
 }
@@ -59,8 +59,8 @@ func TestScript(t *testing.T) {
 // The Windows command is a batch file that runs the app's executable,
 // preserving its arguments and exit status.
 func TestWindowsScript(t *testing.T) {
-	if os.Getenv("MAYOI_TEST_HELPER") != "" {
-		fmt.Println(os.Getenv("MAYOI_CLI"))
+	if os.Getenv("VIBE_TEST_HELPER") != "" {
+		fmt.Println(os.Getenv("VIBE_CLI"))
 		for _, arg := range os.Args[1:] {
 			fmt.Printf("%q\n", arg)
 		}
@@ -78,7 +78,7 @@ func TestWindowsScript(t *testing.T) {
 		t.Fatal(err)
 	}
 	dir := t.TempDir()
-	app := filepath.Join(dir, "My 100% Mayoi", "Mayoi.exe")
+	app := filepath.Join(dir, "My 100% Vibe", "Vibe.exe")
 	data, err := os.ReadFile(exe)
 	if err != nil {
 		t.Fatal(err)
@@ -91,11 +91,11 @@ func TestWindowsScript(t *testing.T) {
 	}
 	localData := filepath.Join(dir, "Local")
 	t.Setenv("LOCALAPPDATA", localData)
-	bin := filepath.Join(localData, "Mayoi", "bin")
+	bin := filepath.Join(localData, "Vibe", "bin")
 	t.Setenv("PATH", t.TempDir())
 	t.Setenv("SHELL", filepath.Join(dir, "missing"))
 	p, err := Install(Dirs(dir, LoginPath()), app)
-	if err != nil || p != filepath.Join(bin, "mayoi.cmd") {
+	if err != nil || p != filepath.Join(bin, "vibe.cmd") {
 		t.Fatalf("installed at %q: %v", p, err)
 	}
 	if _, err := Install([]string{bin}, app); err != nil {
@@ -103,7 +103,7 @@ func TestWindowsScript(t *testing.T) {
 	}
 	args := []string{"/d", "/c", p, "-test.run=TestWindowsScript", "--", "-g", "a b.go:3"}
 	cmd := exec.Command(comspec, args...)
-	cmd.Env = append(os.Environ(), "MAYOI_TEST_HELPER=1")
+	cmd.Env = append(os.Environ(), "VIBE_TEST_HELPER=1")
 	out, err := cmd.CombinedOutput()
 	exit, ok := err.(*exec.ExitError)
 	if !ok || exit.ExitCode() != 7 {
@@ -118,7 +118,7 @@ func TestWindowsScript(t *testing.T) {
 		t.Fatal(err)
 	}
 	out, err = exec.Command(comspec, "/d", "/c", p).CombinedOutput()
-	if exit, ok := err.(*exec.ExitError); !ok || exit.ExitCode() != 1 || !strings.Contains(string(out), "Mayoi.exe is not found") {
+	if exit, ok := err.(*exec.ExitError); !ok || exit.ExitCode() != 1 || !strings.Contains(string(out), "Vibe.exe is not found") {
 		t.Fatalf("missing app exit: %v\n%s", err, out)
 	}
 	removed, err := Uninstall([]string{bin})
@@ -127,7 +127,7 @@ func TestWindowsScript(t *testing.T) {
 	}
 }
 
-// Refresh brings an older Mayoi's command up to date, and leaves another
+// Refresh brings an older Vibe's command up to date, and leaves another
 // program's.
 func TestRefresh(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -137,16 +137,16 @@ func TestRefresh(t *testing.T) {
 	old, foreign := filepath.Join(dir, "old"), filepath.Join(dir, "foreign")
 	os.MkdirAll(old, 0o755)
 	os.MkdirAll(foreign, 0o755)
-	os.WriteFile(filepath.Join(old, "mayoi"), []byte("#!/bin/sh\n# "+scriptMark+"\nopen -b x \"$@\"\n"), 0o755)
-	os.WriteFile(filepath.Join(foreign, "mayoi"), []byte("#!/bin/sh\necho other\n"), 0o755)
-	Refresh([]string{old, foreign, filepath.Join(dir, "none")}, "/Apps/Mayoi.app")
-	if data, _ := os.ReadFile(filepath.Join(old, "mayoi")); string(data) != script("/Apps/Mayoi.app") {
+	os.WriteFile(filepath.Join(old, "vibe"), []byte("#!/bin/sh\n# "+scriptMark+"\nopen -b x \"$@\"\n"), 0o755)
+	os.WriteFile(filepath.Join(foreign, "vibe"), []byte("#!/bin/sh\necho other\n"), 0o755)
+	Refresh([]string{old, foreign, filepath.Join(dir, "none")}, "/Apps/Vibe.app")
+	if data, _ := os.ReadFile(filepath.Join(old, "vibe")); string(data) != script("/Apps/Vibe.app") {
 		t.Errorf("not refreshed: %s", data)
 	}
-	if data, _ := os.ReadFile(filepath.Join(foreign, "mayoi")); string(data) != "#!/bin/sh\necho other\n" {
+	if data, _ := os.ReadFile(filepath.Join(foreign, "vibe")); string(data) != "#!/bin/sh\necho other\n" {
 		t.Errorf("another program's changed: %s", data)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "none", "mayoi")); err == nil {
+	if _, err := os.Stat(filepath.Join(dir, "none", "vibe")); err == nil {
 		t.Error("installed where there was none")
 	}
 }
@@ -158,7 +158,7 @@ func TestInstallAndUninstall(t *testing.T) {
 	dir := t.TempDir()
 	first, second := filepath.Join(dir, "first"), filepath.Join(dir, "second")
 	p, err := Install([]string{first, second}, "")
-	if err != nil || p != filepath.Join(first, "mayoi") {
+	if err != nil || p != filepath.Join(first, "vibe") {
 		t.Fatalf("installed at %q: %v", p, err)
 	}
 	if info, err := os.Stat(p); err != nil || info.Mode().Perm()&0o111 == 0 {
@@ -170,17 +170,17 @@ func TestInstallAndUninstall(t *testing.T) {
 	}
 	// Another program's command stays.
 	os.MkdirAll(second, 0o755)
-	foreign := filepath.Join(second, "mayoi")
+	foreign := filepath.Join(second, "vibe")
 	os.WriteFile(foreign, []byte("#!/bin/sh\necho other\n"), 0o755)
 	if _, err := Install([]string{second}, ""); err == nil {
-		t.Error("overwrote another program's mayoi")
+		t.Error("overwrote another program's vibe")
 	}
 	removed, err := Uninstall([]string{first, second})
 	if err != nil || !slices.Equal(removed, []string{p}) {
 		t.Fatalf("removed %v: %v", removed, err)
 	}
 	if _, err := os.Stat(foreign); err != nil {
-		t.Error("removed another program's mayoi")
+		t.Error("removed another program's vibe")
 	}
 }
 
@@ -192,7 +192,7 @@ func TestDirs(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		localData := filepath.Join(home, "Local")
 		t.Setenv("LOCALAPPDATA", localData)
-		own := filepath.Join(localData, "Mayoi", "bin")
+		own := filepath.Join(localData, "Vibe", "bin")
 		if got := Dirs(home, []string{custom}); !slices.Equal(got, []string{own}) {
 			t.Fatalf("Windows installation uses another tool's folder: %v", got)
 		}
@@ -239,12 +239,12 @@ func TestInstallReachableCommand(t *testing.T) {
 	if err := os.WriteFile(local, []byte("not a directory"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	p, err := Install(Dirs(home, []string{local, bin}), "/Applications/Mayoi.app")
-	if err != nil || p != filepath.Join(bin, "mayoi") {
+	p, err := Install(Dirs(home, []string{local, bin}), "/Applications/Vibe.app")
+	if err != nil || p != filepath.Join(bin, "vibe") {
 		t.Fatalf("user installation: %q, %v", p, err)
 	}
-	Refresh([]string{bin}, "/New/Mayoi.app")
-	if data, _ := os.ReadFile(p); string(data) != script("/New/Mayoi.app") {
+	Refresh([]string{bin}, "/New/Vibe.app")
+	if data, _ := os.ReadFile(p); string(data) != script("/New/Vibe.app") {
 		t.Fatalf("command was not refreshed: %s", data)
 	}
 	removed, err := Uninstall([]string{bin})
@@ -260,14 +260,14 @@ func TestInstallReusesExistingCommand(t *testing.T) {
 	home := t.TempDir()
 	local := filepath.Join(home, ".local", "bin")
 	bin := filepath.Join(home, "bin")
-	if err := write(bin, "/Old/Mayoi.app"); err != nil {
+	if err := write(bin, "/Old/Vibe.app"); err != nil {
 		t.Fatal(err)
 	}
-	p, err := Install(Dirs(home, []string{local, bin}), "/New/Mayoi.app")
-	if err != nil || p != filepath.Join(bin, "mayoi") {
+	p, err := Install(Dirs(home, []string{local, bin}), "/New/Vibe.app")
+	if err != nil || p != filepath.Join(bin, "vibe") {
 		t.Fatalf("reinstalled at %q: %v", p, err)
 	}
-	if data, _ := os.ReadFile(p); string(data) != script("/New/Mayoi.app") {
+	if data, _ := os.ReadFile(p); string(data) != script("/New/Vibe.app") {
 		t.Fatalf("existing command not updated: %s", data)
 	}
 	if _, err := os.Stat(local); !os.IsNotExist(err) {
@@ -285,7 +285,7 @@ func TestInstallSkipsUnreadableDirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { os.Chmod(blocked, 0o755) })
-	if p, err := Install([]string{blocked, writable}, ""); err != nil || p != filepath.Join(writable, "mayoi") {
+	if p, err := Install([]string{blocked, writable}, ""); err != nil || p != filepath.Join(writable, "vibe") {
 		t.Fatalf("unreadable directory blocked installation: %q, %v", p, err)
 	}
 	// A readable, unwritable folder must give useful guidance too.
@@ -303,11 +303,11 @@ func TestPreserveHomebrewCommand(t *testing.T) {
 	}
 	dir := t.TempDir()
 	wrapper := filepath.Join(dir, "brew-wrapper")
-	data := []byte("#!/bin/sh\n# Managed by Homebrew; use brew uninstall --cask mayoi to remove it.\n")
+	data := []byte("#!/bin/sh\n# Managed by Homebrew; use brew uninstall --cask vibe to remove it.\n")
 	if err := os.WriteFile(wrapper, data, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	command := filepath.Join(dir, "mayoi")
+	command := filepath.Join(dir, "vibe")
 	if err := os.Symlink(wrapper, command); err != nil {
 		t.Fatal(err)
 	}
@@ -315,10 +315,10 @@ func TestPreserveHomebrewCommand(t *testing.T) {
 	if _, err := Install([]string{empty, dir}, ""); err == nil || !strings.Contains(err.Error(), "another program") {
 		t.Fatalf("expected ownership protection: %v", err)
 	}
-	if _, err := os.Lstat(filepath.Join(empty, "mayoi")); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(empty, "vibe")); !os.IsNotExist(err) {
 		t.Fatalf("shadowed Homebrew's command: %v", err)
 	}
-	Refresh([]string{dir}, "/Applications/Mayoi.app")
+	Refresh([]string{dir}, "/Applications/Vibe.app")
 	if removed, err := Uninstall([]string{dir}); err != nil || len(removed) != 0 {
 		t.Fatalf("removed Homebrew command: %v, %v", removed, err)
 	}
@@ -335,7 +335,7 @@ func TestPreserveBrokenCommandLink(t *testing.T) {
 		t.Skip("a shell script")
 	}
 	dir := t.TempDir()
-	p := filepath.Join(dir, "mayoi")
+	p := filepath.Join(dir, "vibe")
 	target := filepath.Join(dir, "missing")
 	if err := os.Symlink(target, p); err != nil {
 		t.Fatal(err)
@@ -374,7 +374,7 @@ func TestLoginPathExcludesFinderFallback(t *testing.T) {
 	}
 	dir := t.TempDir()
 	sh := filepath.Join(dir, "shell")
-	if err := os.WriteFile(sh, []byte("#!/bin/sh\necho MAYOI_PATH=/usr/bin:/bin\n"), 0o755); err != nil {
+	if err := os.WriteFile(sh, []byte("#!/bin/sh\necho VIBE_PATH=/usr/bin:/bin\n"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("SHELL", sh)
@@ -396,7 +396,7 @@ func TestLoginPathKeepsOutputOnFailure(t *testing.T) {
 		t.Skip("a shell script")
 	}
 	sh := filepath.Join(t.TempDir(), "shell")
-	if err := os.WriteFile(sh, []byte("#!/bin/sh\necho MAYOI_PATH=/usr/bin:/bin\nexit 1\n"), 0o755); err != nil {
+	if err := os.WriteFile(sh, []byte("#!/bin/sh\necho VIBE_PATH=/usr/bin:/bin\nexit 1\n"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("SHELL", sh)
@@ -422,8 +422,8 @@ func TestLoginPathFish(t *testing.T) {
 	if got := LoginPath(); !slices.Equal(got, []string{local, "/usr/bin", "/bin"}) {
 		t.Fatalf("fish PATH lost directory boundaries: %q", got)
 	}
-	p, err := Install(Dirs(home, LoginPath()), "/Applications/Mayoi.app")
-	if err != nil || p != filepath.Join(local, "mayoi") {
+	p, err := Install(Dirs(home, LoginPath()), "/Applications/Vibe.app")
+	if err != nil || p != filepath.Join(local, "vibe") {
 		t.Fatalf("fish installation: %q, %v", p, err)
 	}
 }

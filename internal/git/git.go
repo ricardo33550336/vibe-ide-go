@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"mayoi/internal/remote"
-	"mayoi/internal/vfs"
+	"vibe/internal/remote"
+	"vibe/internal/vfs"
 )
 
 // Repo is a Git work tree. Root is spelled as the folder it was found

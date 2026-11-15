@@ -10,7 +10,7 @@ All of Mayoi's files are in one data folder:
 
 | System  | Folder                                                       |
 | ------- | ------------------------------------------------------------ |
-| macOS   | `~/Library/Application Support/Mayoi`                        |
+| macOS   | `~/Library/Application Support/Vibe`                        |
 | Linux   | `$XDG_CONFIG_HOME/Mayoi`, or `~/.config/Mayoi` if it's unset |
 | Windows | `%AppData%\Mayoi`                                            |
 
@@ -26,15 +26,15 @@ All of Mayoi's files are in one data folder:
 | `crashes/`          | Mayoi         | The last 10 crash logs, by time; `.sent` or `.unsent` once asked about            |
 | `usage.json`        | Mayoi         | [`usageStats`](#the-rest): the day and version of the last count sent             |
 
-Plugins, user scripts and what plugins store are in `~/.mayoi` instead: see [PLUGINS.md](PLUGINS.md#where-they-are).
+Plugins, user scripts and what plugins store are in `~/.vibe` instead: see [PLUGINS.md](PLUGINS.md#where-they-are).
 
-To keep the files somewhere else, start Mayoi with `MAYOI_DATA_DIR` set to a folder. Mayoi then reads and writes all
+To keep the files somewhere else, start Mayoi with `VIBE_DATA_DIR` set to a folder. Mayoi then reads and writes all
 of these files there instead, which is a way to try a setup without touching your own. Create the folder first, and
 quit Mayoi before, since a Mayoi already running takes over a second one. On macOS:
 
 ```sh
 mkdir -p ~/mayoi-test
-MAYOI_DATA_DIR=~/mayoi-test /Applications/Mayoi.app/Contents/MacOS/Mayoi
+VIBE_DATA_DIR=~/mayoi-test /Applications/Vibe.app/Contents/MacOS/Vibe
 ```
 
 ## The settings window
@@ -69,12 +69,13 @@ takes its default.
 | `terminalFontFamily`    | `""`          | Font names, separated by commas                             |                                                |
 | `terminalFontSize`      | `0`           | 0, or 9 to 28                                               |                                                |
 | `terminalCopyOnSelect`  | `true`        | `true`, `false`                                             |                                                |
-| `theme`                 | `""`          | `""` (Mayoi), `"matrix"`, `"claude"`, `"qoder"`, `"grokbot"`, `"cursor"`, `"purplegold"`, `"pumpkin"`, `"witchsbrew"`, `"bloodmoon"`, `"gtavi"` | **View → Theme**, **Color Theme…**             |
+| `theme`                 | `""`          | `""` (Vibe), `"matrix"`, `"claude"`, `"qoder"`, `"grokbot"`, `"cursor"`, `"purplegold"`, `"pumpkin"`, `"witchsbrew"`, `"bloodmoon"`, `"gtavi"` | **View → Theme**, **Color Theme…**             |
 | `appearance`            | `""`          | `""` (follow the system), `"light"`, `"dark"`               | **View → Theme**                               |
 | `sidebarRight`          | `false`       | `true`, `false`                                             | **View → Sidebar on Right**                    |
+| `workspaceWidth`        | `0`           | 0 (236), or 180 to 420, in DIPs                             | Drag the workspace panel's edge                |
 | `panelPosition`         | `""`          | `""` (bottom), `"left"`, `"right"`                          | **View → Panel Position**                      |
 | `terminalLocation`      | `""`          | `""` (the panel), `"editor"`                                | **View → New Terminals in Editor Area**        |
-| `terminalBackend`       | `""`          | `""` (Mayoi), `"hc"` (herdr-core)                           |                                                |
+| `terminalBackend`       | `""`          | `""` (Vibe), `"hc"` (herdr-core)                           |                                                |
 | `terminalBackendHcPath` | `""`          | A path to `hc`, a folder that has it, or a name on `PATH`   |                                                |
 | `terminalBackendHcEnv`  | none          | A list of `KEY=value` environment variables for `hc`        |                                                |
 | `terminalBackendHcShowInHerdr` | `true` | `true`, `false`                                      |                                                |
@@ -248,12 +249,12 @@ differ in width lines them up only roughly.
   to Mon, `"always"` sends them and `"never"` doesn't. A report is anonymous, never sent with your account's token,
   and has your home folder taken out, but not other paths, such as `/Volumes/...` or `/opt/...`. **Show Report** in
   the question opens the logs as they would be sent. Only releases send reports, and builds started with
-  `MAYOI_MON_URL`. Enter answers **Don't Send**.
+  `VIBE_MON_URL`. Enter answers **Don't Send**.
 - **`usageStats`** sends an anonymous count of Mayoi's use to Umami at `umami.sorrycc.dev`: an `active` event once a
   day while Mayoi is open, and an `update` event on the first launch of a new version. Each holds only Mayoi's
   version (and the one before, for `update`), the system and its architecture, and the language of the menus; never a
   path, a file, a name or your account. Turn it off to send nothing. `DO_NOT_TRACK=1` in Mayoi's environment turns
-  it off too. Only releases send, and builds started with `MAYOI_UMAMI_URL`. See [PRIVACY.md](PRIVACY.md).
+  it off too. Only releases send, and builds started with `VIBE_UMAMI_URL`. See [PRIVACY.md](PRIVACY.md).
 - **`aiSecretFiles`** adds patterns of files whose lines **Write Commit Message with AI** never sends, after
   Mayoi's own list of `.env` files, keys and credentials. A name matches in any folder, a path such as
   `config/prod.yml` matches the end of a file's path, and `/config/prod.yml` its start. `**` is any run of folders,
@@ -308,7 +309,7 @@ differ in width lines them up only roughly.
 
 ### From the command line
 
-The `mayoi` command reads and changes the preferences itself, while Mayoi runs or not, as the [`mayoi`
+The `vibe` command reads and changes the preferences itself, while Mayoi runs or not, as the [`vibe`
 command](FEATURES.md#the-mayoi-command) of the app does:
 
 ```sh

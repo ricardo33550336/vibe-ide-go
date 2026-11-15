@@ -1,4 +1,4 @@
-// Package cloudsync syncs Mayoi's preferences and keyboard shortcuts with
+// Package cloudsync syncs Vibe's preferences and keyboard shortcuts with
 // the person's Mon account, as one settings document of Mon's:
 //
 //	{"settings": {"fontSize": 14, …}, "keybindings": "// keybindings.json as it is\n[…]"}
@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"mayoi/internal/mon"
+	"vibe/internal/mon"
 )
 
-// App is Mayoi's client id with Mon, and its settings document's name.
-const App = "mayoi"
+// App is Vibe's client id with Mon, and its settings document's name.
+const App = "vibe"
 
 // Snapshot is what syncs: the preferences by their keys in settings.json,
 // and keybindings.json's text, "" for no file.
@@ -105,8 +105,8 @@ type Local interface {
 	// IsDefault reports whether s is what a first launch has, which a
 	// first sync replaces without asking.
 	IsDefault(s Snapshot) bool
-	// Known reports whether this version of Mayoi has the preference
-	// key: one it does not have, of a newer Mayoi's, it keeps as the
+	// Known reports whether this version of Vibe has the preference
+	// key: one it does not have, of a newer Vibe's, it keeps as the
 	// account has it.
 	Known(key string) bool
 	// Kept returns what stays on this machine, as the person chose: the
@@ -383,7 +383,7 @@ func since(mine, was, now Snapshot) Snapshot {
 }
 
 // withUnknown returns local with the preferences of base this version of
-// Mayoi does not know, as unchanged, rather than as removed.
+// Vibe does not know, as unchanged, rather than as removed.
 func (e *Engine) withUnknown(base, local Snapshot) Snapshot {
 	out := local
 	out.Settings = maps.Clone(local.Settings)

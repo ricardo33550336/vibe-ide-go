@@ -1,19 +1,82 @@
 {
-  "name": "Mayoi",
-  "identifier": "dev.mayoi.editor",
-  "version": "0.21.2",
-  "main": "./cmd/mayoi",
-  "urlSchemes": ["mayoi"],
+  "name": "Vibe",
+  "identifier": "dev.vibe.ide",
+  "version": "0.1.0",
+  "main": "./cmd/vibe",
+  "urlSchemes": [
+    "vibe"
+  ],
   "fileAssociations": [
-    { "name": "Plain Text", "ext": ["txt", "text", "log"], "mimeType": "text/plain" },
-    { "name": "Markdown Document", "ext": ["md", "markdown"], "mimeType": "text/markdown" },
-    { "name": "JSON Document", "ext": ["json"], "mimeType": "application/json" },
-    { "name": "XML Document", "ext": ["xml"], "mimeType": "application/xml" },
-    { "name": "YAML Document", "ext": ["yaml", "yml"], "mimeType": "application/yaml" },
-    { "name": "HTML Document", "ext": ["html", "htm"], "mimeType": "text/html" },
-    { "name": "CSS Stylesheet", "ext": ["css"], "mimeType": "text/css" },
-    { "name": "CSV Document", "ext": ["csv"], "mimeType": "text/csv" },
-    { "name": "JavaScript Source", "ext": ["js", "mjs", "cjs"], "mimeType": "text/javascript" }
+    {
+      "name": "Plain Text",
+      "ext": [
+        "txt",
+        "text",
+        "log"
+      ],
+      "mimeType": "text/plain"
+    },
+    {
+      "name": "Markdown Document",
+      "ext": [
+        "md",
+        "markdown"
+      ],
+      "mimeType": "text/markdown"
+    },
+    {
+      "name": "JSON Document",
+      "ext": [
+        "json"
+      ],
+      "mimeType": "application/json"
+    },
+    {
+      "name": "XML Document",
+      "ext": [
+        "xml"
+      ],
+      "mimeType": "application/xml"
+    },
+    {
+      "name": "YAML Document",
+      "ext": [
+        "yaml",
+        "yml"
+      ],
+      "mimeType": "application/yaml"
+    },
+    {
+      "name": "HTML Document",
+      "ext": [
+        "html",
+        "htm"
+      ],
+      "mimeType": "text/html"
+    },
+    {
+      "name": "CSS Stylesheet",
+      "ext": [
+        "css"
+      ],
+      "mimeType": "text/css"
+    },
+    {
+      "name": "CSV Document",
+      "ext": [
+        "csv"
+      ],
+      "mimeType": "text/csv"
+    },
+    {
+      "name": "JavaScript Source",
+      "ext": [
+        "js",
+        "mjs",
+        "cjs"
+      ],
+      "mimeType": "text/javascript"
+    }
   ],
   "out": "build",
   "i18n": {
@@ -138,30 +201,30 @@
           "CFBundleTypeName": "Document",
           "CFBundleTypeRole": "Editor",
           "LSHandlerRank": "Alternate",
-          "LSItemContentTypes": ["public.data"]
+          "LSItemContentTypes": [
+            "public.data"
+          ]
         },
         {
           "CFBundleTypeName": "Folder",
           "CFBundleTypeRole": "Editor",
           "LSHandlerRank": "Alternate",
-          "LSItemContentTypes": ["public.folder"]
+          "LSItemContentTypes": [
+            "public.folder"
+          ]
         }
       ]
     }
   },
   "windows": {
-    "contextMenu": "Open with Mayoi"
+    "contextMenu": "Open with Vibe"
   },
   "linux": {
-    "command": "mayoi",
-    "comment": "A small, fast code editor",
+    "command": "vibe",
+    "comment": "A terminal-first code editor",
     "categories": [
       "Development",
       "TextEditor"
     ]
-  },
-  "updates": {
-    "publicKey": "kW6/B4DkWNQdyHkFOrU6tpvLfb5xGVvyYhrIQF7Bct4=",
-    "github": "sorrycc/Mayoi"
   }
 }

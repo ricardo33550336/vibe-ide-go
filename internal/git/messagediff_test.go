@@ -51,7 +51,7 @@ func TestMessageDiff(t *testing.T) {
 		}
 	}
 
-	// A pattern of the person's sends a file Mayoi's would not, but what
+	// A pattern of the person's sends a file Vibe's would not, but what
 	// looks like a key stays out.
 	d, _, err = r.MessageDiff(false, 0, []string{"!.env"})
 	if err != nil || !strings.Contains(d, "+SECRET=abc") || strings.Contains(d, "AKIAIOSFODNN7EXAMPLE") {
@@ -122,7 +122,7 @@ func TestMessageDiffBeforeTheFirstCommit(t *testing.T) {
 }
 
 // The files that may hold secrets, by their names and folders, the
-// templates of them that don't, and the person's patterns over Mayoi's.
+// templates of them that don't, and the person's patterns over Vibe's.
 func TestSecretIn(t *testing.T) {
 	for _, name := range []string{
 		".env", ".env.local", ".envrc", "prod.env", "config/secrets.yml", "secrets.json", "secret.txt", "配置/.env",

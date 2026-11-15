@@ -14,7 +14,7 @@ import (
 // stay opaque, rather than only testing the mapper in isolation.
 func TestMappedClientPreservesContent(t *testing.T) {
 	cmd := exec.Command(os.Args[0])
-	cmd.Env = append(os.Environ(), "MAYOI_FAKE_LSP=1")
+	cmd.Env = append(os.Environ(), "VIBE_FAKE_LSP=1")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	init := json.RawMessage(`{"uri":"file:///work/literal","token":9007199254740993,"hoverContents":{"kind":"plaintext","value":"file:///tmp/literal"}}`)

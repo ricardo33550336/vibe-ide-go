@@ -1,4 +1,4 @@
-// Package workspace is the folder Mayoi has open: its file tree, read a
+// Package workspace is the folder Vibe has open: its file tree, read a
 // directory at a time as the user opens them and kept up to date as files
 // change on disk, and an index of its files for quick open.
 package workspace
@@ -18,9 +18,9 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"mayoi/internal/bg"
-	"mayoi/internal/remote"
-	"mayoi/internal/vfs"
+	"vibe/internal/bg"
+	"vibe/internal/remote"
+	"vibe/internal/vfs"
 )
 
 // Hidden reports whether the file tree leaves an entry out.

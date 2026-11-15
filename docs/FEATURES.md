@@ -341,7 +341,7 @@ it goes to the agent, and clears them. **Copy Review Items** copies them instead
 them, as a diff when it was made in one, then the comment, numbered when there are more than one:
 
 ````
-cmd/mayoi/diffview.go:1228-1229
+cmd/vibe/diffview.go:1228-1229
 ```diff
 -	if ev.Kind != ui.InputKeyDown || ev.Mods&^ui.Shift != 0 {
 +	if ev.Kind != ui.InputKeyDown {
@@ -742,16 +742,16 @@ background, which opens the file, the folder, or the folder you are in. Windows 
 options**. **File → Add 'Open with Mayoi' to Explorer** adds it to a Mayoi installed before, and **File → Remove 'Open
 with Mayoi' from Explorer** takes it away; uninstalling Mayoi removes it too.
 
-## The `mayoi` command
+## The `vibe` command
 
 **File → Install 'mayoi' Command** installs the command into `~/.local/bin` when that directory is on your `PATH`, and
 otherwise into `/usr/local/bin`, which asks for your password. On Windows, it installs `mayoi.cmd` in
 `%LOCALAPPDATA%\Mayoi\bin`, and adds that folder to your user `PATH`; open a new terminal to use it. On Linux,
 `install.sh` puts it in `~/.local/bin`, and the Debian package in `/usr/bin`.
 
-- `mayoi .` opens the current folder, in a new window or the one that already has it, or with project tabs in a new
+- `vibe .` opens the current folder, in a new window or the one that already has it, or with project tabs in a new
   tab.
-- `mayoi <file>` opens a file in the window whose folder contains it.
+- `vibe <file>` opens a file in the window whose folder contains it.
 - `mayoi -g <file:line[:column]>` opens a file with the caret at a line and column.
 - `mayoi -d <file> <file>` compares two files, side by side or inline as the diffs are set to show.
 - `mayoi -n [folder or file]...` opens them in a new window, and with nothing, a new empty window.
@@ -794,7 +794,7 @@ otherwise into `/usr/local/bin`, which asks for your password. On Windows, it in
 A command acts on the window whose folder contains the directory it runs in, else the one in front; `--window
 <folder>` picks the window that has the folder open. The command returns as soon as Mayoi has done what it asked, but
 with `-w`, and starts Mayoi if it isn't running. When something goes wrong, it says so and exits with status 1, or 2
-for options it doesn't know. A `mayoi` command an older Mayoi installed is brought up to date as Mayoi starts.
+for options it doesn't know. A `vibe` command an older Mayoi installed is brought up to date as Mayoi starts.
 
 ## Deep links
 
@@ -878,7 +878,7 @@ again with its tabs, columns and Explorer as they were. Closing the last window 
 
 ## Plugins
 
-Plugins are folders of JavaScript or TypeScript in `~/.mayoi/plugins`, which Mayoi runs in its own engine, each
+Plugins are folders of JavaScript or TypeScript in `~/.vibe/plugins`, which Mayoi runs in its own engine, each
 apart, with no Node and no build step. They add commands, keyboard shortcuts and menu items, status bar items, views in
 the sidebar, previews beside the source, formatters, diagnostics, themes (VS Code's too), languages, snippets and
 language servers, and they work on SSH folders with nothing installed on the host. See [PLUGINS.md](PLUGINS.md).
@@ -891,7 +891,7 @@ language servers, and they work on SSH folders with nothing installed on the hos
   **Go → Show Hover** and **Selection → Complete Word** (⌃Space).
 - **Show Problems** lists every problem plugins found; the status bar counts them.
 - **Selection → Insert Snippet…** inserts a snippet of a plugin's.
-- A `.ts` file in `~/.mayoi/scripts` makes each function it exports a command; **Plugins → Run Selection as Script**
+- A `.ts` file in `~/.vibe/scripts` makes each function it exports a command; **Plugins → Run Selection as Script**
   runs the selection once.
 - Signed in, the plugins you install from Git follow you to your other machines.
 - Mayoi comes with **Word Count**, the words of a Markdown file in the status bar, and **TODOs**, the folder's TODO

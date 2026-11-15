@@ -9,8 +9,8 @@ import (
 	"slices"
 	"strings"
 
-	"mayoi/internal/remote"
-	"mayoi/internal/vfs"
+	"vibe/internal/remote"
+	"vibe/internal/vfs"
 )
 
 // PR is the pull request of the branch checked out, as the GitHub CLI has

@@ -199,7 +199,7 @@ func Start(ctx context.Context, opts Options) (*Client, error) {
 			},
 			"workspace": map[string]any{"workspaceFolders": true, "configuration": true},
 		},
-		"clientInfo": map[string]any{"name": "Mayoi"},
+		"clientInfo": map[string]any{"name": "Vibe"},
 	}
 	res, err := c.Call(ctx, "initialize", params)
 	if err != nil {

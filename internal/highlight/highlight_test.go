@@ -286,7 +286,7 @@ func TestHighlighterSettlesOnLexingAll(t *testing.T) {
 // BenchmarkRelexTyping lexes a 6,000-line Go file again after a letter is
 // typed in its middle, as each keystroke does.
 func BenchmarkRelexTyping(b *testing.B) {
-	src, _ := os.ReadFile("../../cmd/mayoi/editor.go")
+	src, _ := os.ReadFile("../../cmd/vibe/editor.go")
 	lines := strings.Split(strings.Repeat(string(src), 10), "\n")
 	l := Lexer("x.go")
 	s := newSource(lines, 1)

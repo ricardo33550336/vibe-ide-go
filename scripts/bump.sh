@@ -8,7 +8,7 @@
 # same commit, unless a "## <version>" section is there already: the update
 # window shows it, it is the notes of the GitHub release, and the release
 # fails without it. Pre-release versions such as 1.2.0-beta.1 are refused,
-# as Mayoi has no beta channel yet.
+# as Vibe has no beta channel yet.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -125,4 +125,4 @@ scripts/release-notes.sh "$VERSION"
 echo
 
 git push --quiet --atomic origin main "$TAG"
-echo "==> pushed $TAG. The Release workflow: https://github.com/sorrycc/Mayoi/actions/workflows/release.yml"
+echo "==> pushed $TAG. The Release workflow: https://github.com/sorrycc/Vibe/actions/workflows/release.yml"

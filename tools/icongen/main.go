@@ -1,4 +1,4 @@
-// Command icongen places Mayoi's app icon art, cmd/mayoi/icon-art.png, on
+// Command icongen places Vibe's app icon art, cmd/vibe/icon-art.png, on
 // the macOS icon grid and writes resources/icon.png:
 //
 //	go run ./tools/icongen
@@ -18,7 +18,7 @@ import (
 const frame = 52
 
 func main() {
-	f, err := os.Open("cmd/mayoi/icon-art.png")
+	f, err := os.Open("cmd/vibe/icon-art.png")
 	if err != nil {
 		log.Fatal(err)
 	}

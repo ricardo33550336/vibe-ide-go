@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-// Client is the mayoi command's side of the socket.
+// Client is the vibe command's side of the socket.
 type Client struct {
 	Socket  string
 	Version string
 	// SettingsPath is the file of the person's preferences, which
-	// `mayoi settings` changes itself.
+	// `vibe settings` changes itself.
 	SettingsPath string
 	// Start starts the app, which opens paths as it starts, nil for
 	// none.
@@ -25,7 +25,7 @@ type Client struct {
 	Starting time.Duration
 }
 
-// Run runs the mayoi command with args, in cwd, and returns its exit
+// Run runs the vibe command with args, in cwd, and returns its exit
 // status, unless the app is to start in this process, when handled is
 // false.
 func (c Client) Run(args []string, cwd string, stdout, stderr io.Writer) (status int, handled bool) {
@@ -35,14 +35,14 @@ func (c Client) Run(args []string, cwd string, stdout, stderr io.Writer) (status
 		fmt.Fprint(stdout, Usage)
 		return 0, true
 	case errors.Is(err, ErrVersion):
-		fmt.Fprintln(stdout, "Mayoi", c.Version)
+		fmt.Fprintln(stdout, "Vibe", c.Version)
 		return 0, true
 	case err != nil:
-		fmt.Fprintf(stderr, "mayoi: %v\nRun mayoi --help for the options.\n", err)
+		fmt.Fprintf(stderr, "vibe: %v\nRun vibe --help for the options.\n", err)
 		return 2, true
 	}
 	// The preferences are the command's own: it works with the app not
-	// running, which reads the file again as a Mayoi running does.
+	// running, which reads the file again as a Vibe running does.
 	if req.Settings != nil {
 		return doSettings(c, req, stdout, stderr), true
 	}
@@ -57,7 +57,7 @@ func (c Client) Run(args []string, cwd string, stdout, stderr io.Writer) (status
 				paths[i] = t.Path
 			}
 			if err := c.Start(paths); err != nil {
-				fmt.Fprintf(stderr, "mayoi: %v\n", err)
+				fmt.Fprintf(stderr, "vibe: %v\n", err)
 				return 1, true
 			}
 			return 0, true
@@ -69,12 +69,12 @@ func (c Client) Run(args []string, cwd string, stdout, stderr io.Writer) (status
 		err = nil
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "mayoi: %v\n", err)
+		fmt.Fprintf(stderr, "vibe: %v\n", err)
 		return 1, true
 	}
 	fmt.Fprint(stdout, reply.Output)
 	if reply.Error != "" {
-		fmt.Fprintf(stderr, "mayoi: %s\n", reply.Error)
+		fmt.Fprintf(stderr, "vibe: %s\n", reply.Error)
 		return 1, true
 	}
 	return 0, true

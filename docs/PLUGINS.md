@@ -4,7 +4,7 @@ Plugins add commands, react to the editor, check and format code, draw views and
 snippets and language servers. They are folders of JavaScript or TypeScript that Mayoi runs in its own engine,
 [moejs](https://github.com/MoeForge/moejs): no Node, no build step, and no webview unless a plugin asks for one.
 
-The API is new and may still change before 1.0. A plugin says which versions of Mayoi it works with in `mayoi`.
+The API is new and may still change before 1.0. A plugin says which versions of Mayoi it works with in `vibe`.
 
 ## Using plugins
 
@@ -32,12 +32,12 @@ plugins you know.
 
 | Folder                              | What                                                        |
 | ----------------------------------- | ----------------------------------------------------------- |
-| `~/.mayoi/plugins/<name>/`          | Installed plugins, a folder each                            |
-| `~/.mayoi/plugins/plugins.json`     | Where each plugin installed from Git came from, and its commit |
-| `~/.mayoi/scripts/`                 | User scripts                                                |
-| `~/.mayoi/storage/<name>/`          | What plugins store                                          |
+| `~/.vibe/plugins/<name>/`          | Installed plugins, a folder each                            |
+| `~/.vibe/plugins/plugins.json`     | Where each plugin installed from Git came from, and its commit |
+| `~/.vibe/scripts/`                 | User scripts                                                |
+| `~/.vibe/storage/<name>/`          | What plugins store                                          |
 
-On Windows, `~` is `%USERPROFILE%`. With `MAYOI_DATA_DIR` set, these folders are in that folder instead.
+On Windows, `~` is `%USERPROFILE%`. With `VIBE_DATA_DIR` set, these folders are in that folder instead.
 
 Mayoi comes with two plugins of its own, **Word Count** (the words and reading time of a Markdown or text file, in the
 status bar) and **TODOs** (the folder's TODO, FIXME and HACK comments, in the sidebar). They start off; turn them on
@@ -186,7 +186,7 @@ A plugin may also export `activate()`, which runs as it starts, after its top le
 
 What a plugin's code has:
 
-- The `mayoi` module, below. Its types are in `mayoi.d.ts`.
+- The `vibe` module, below. Its types are in `mayoi.d.ts`.
 - `console`, whose lines go to the plugin's log.
 - `fetch`, `Request`, `Response`, `Headers`, `URL`, `URLSearchParams`, the Streams, `AbortController`, `setTimeout`,
   `setInterval` and `queueMicrotask`.
@@ -470,7 +470,7 @@ off takes its agents and their sessions with it.
 
 ### User scripts
 
-A `.ts` or `.js` file in `~/.mayoi/scripts` is a plugin without a manifest: each function it exports is a command,
+A `.ts` or `.js` file in `~/.vibe/scripts` is a plugin without a manifest: each function it exports is a command,
 `script.<file>.<function>`, titled from its name, in the command palette, the shortcuts editor and `mayoi run`. A
 function gets what `mayoi run script.text.upperCase=hello` gives, or nothing from the palette.
 **Plugins → Open Scripts Folder** makes the folder with an example.

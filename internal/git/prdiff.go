@@ -148,7 +148,7 @@ func PRRef(number int, head bool) string {
 	if head {
 		side = "head"
 	}
-	return "refs/mayoi/pull/" + strconv.Itoa(number) + "/" + side
+	return "refs/vibe/pull/" + strconv.Itoa(number) + "/" + side
 }
 
 // FetchPullRequest has the commits of a pull request's base and head in

@@ -1,0 +1,22 @@
+Vibe
+====
+
+Vibe is a fork of Mayoi (https://github.com/sorrycc/Mayoi), a small, fast
+code editor written in Go.
+
+Mayoi is Copyright (c) 2026 chencheng <sorrycc@gmail.com> and is licensed
+under the MIT License. The original copyright notice is retained in LICENSE.
+
+Vibe's changes are Copyright (c) 2026 Vibe contributors, also under the MIT
+License.
+
+Third-party components
+----------------------
+
+- MyGo (https://github.com/egoist/mygo), MIT License.
+- Ghostty and libghostty-vt (https://github.com/ghostty-org/ghostty),
+  MIT License.
+- creack/pty (https://github.com/creack/pty), MIT License.
+- The Go modules listed in go.mod, each under its own license.
+
+Vibe is not affiliated with Mayoi, Ghostty, or the original vibe-ide project.

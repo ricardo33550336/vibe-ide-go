@@ -30,7 +30,7 @@ func (h *fakeHost) Call(p *Plugin, method string, args json.RawMessage) (any, er
 	return nil, nil
 }
 func (h *fakeHost) Settings(name string) json.RawMessage { return h.settings[name] }
-func (h *fakeHost) MayoiSetting(key string) any          { return nil }
+func (h *fakeHost) VibeSetting(key string) any           { return nil }
 func (h *fakeHost) Folder() string                       { return "/work/folder" }
 func (h *fakeHost) Changed()                             {}
 func (h *fakeHost) Logged(p *Plugin, line LogLine) {
@@ -85,7 +85,7 @@ func TestCommandRoundTrip(t *testing.T) {
 				"settings": {"factor": {"type": "number", "default": 2}},
 			},
 		}`,
-		"main.ts": `import { commands, editor, settings, storage } from "mayoi";
+		"main.ts": `import { commands, editor, settings, storage } from "vibe";
 import { words } from "./lib/count";
 commands.register("word-count.count", async (arg?: string) => {
   const ed = await editor.active();
@@ -142,7 +142,7 @@ func TestManifestStartsOff(t *testing.T) {
 	r, h, dirs := newRegistry(t)
 	writePlugin(t, dirs.Plugins, "quiet", map[string]string{
 		"plugin.json": `{"name": "quiet", "main": "main.js", "enabled": false, "contributes": {"commands": [{"id": "quiet.x", "title": "X"}]}}`,
-		"main.js":     `import { commands } from "mayoi"; commands.register("quiet.x", () => 1);`,
+		"main.js":     `import { commands } from "vibe"; commands.register("quiet.x", () => 1);`,
 	})
 	r.Load()
 	if _, err := r.Run("quiet.x", nil); err == nil {
@@ -170,7 +170,7 @@ func TestImportsStayInFolder(t *testing.T) {
 	})
 	writePlugin(t, dirs.Plugins, "evil", map[string]string{
 		"plugin.json": `{"name": "evil", "main": "main.js", "contributes": {"commands": [{"id": "evil.x", "title": "X"}]}}`,
-		"main.js":     `import { commands } from "mayoi"; commands.register("evil.x", () => eval("1+1"));`,
+		"main.js":     `import { commands } from "vibe"; commands.register("evil.x", () => eval("1+1"));`,
 	})
 	r.Load()
 	if _, err := r.Run("bad.x", nil); err == nil || !strings.Contains(err.Error(), "node:fs") {
@@ -191,7 +191,7 @@ func TestBusyPluginIsStopped(t *testing.T) {
 	r, _, dirs := newRegistry(t)
 	writePlugin(t, dirs.Plugins, "spin", map[string]string{
 		"plugin.json": `{"name": "spin", "main": "main.js", "contributes": {"commands": [{"id": "spin.go", "title": "Go"}, {"id": "spin.ok", "title": "OK"}]}}`,
-		"main.js":     `import { commands } from "mayoi"; commands.register("spin.go", () => { while (true) {} }); commands.register("spin.ok", () => 1);`,
+		"main.js":     `import { commands } from "vibe"; commands.register("spin.go", () => { while (true) {} }); commands.register("spin.ok", () => 1);`,
 	})
 	r.Load()
 	began := time.Now()
@@ -242,7 +242,7 @@ func TestEventsAndConsole(t *testing.T) {
 	r, h, dirs := newRegistry(t)
 	writePlugin(t, dirs.Plugins, "listen", map[string]string{
 		"plugin.json": `{"name": "listen", "main": "main.js", "activation": ["onLanguage:go"]}`,
-		"main.js": `import { events, window } from "mayoi";
+		"main.js": `import { events, window } from "vibe";
 console.log("loaded", { a: 1 });
 events.on("editor.didSave", (e) => window.notify("saved " + e.path));`,
 	})
@@ -292,7 +292,7 @@ func TestManifestChecks(t *testing.T) {
 		`{"name": "x", "contributes": {"commands": [{"id": "y.a", "title": "A"}]}}`,
 		`{"name": "x", "contributes": {"commands": [{"id": "x.a"}]}}`,
 		`{"name": "x", "main": "../y.js"}`,
-		`{"name": "x", "mayoi": "soon"}`,
+		`{"name": "x", "vibe": "soon"}`,
 		`{"name": "x", "contributes": {"previews": [{"id": "x.p", "pattern": "*.d2", "output": "png"}]}}`,
 		`{"name": "x", "main": "m.ts", "contributes": {"agents": [{"id": "y.a", "name": "A", "resume": "a {id}"}]}}`,
 		`{"name": "x", "main": "m.ts", "contributes": {"agents": [{"id": "x.a", "name": "A"}]}}`,
@@ -321,7 +321,7 @@ func TestReloadKeepsUnchanged(t *testing.T) {
 	r, _, dirs := newRegistry(t)
 	writePlugin(t, dirs.Plugins, "a", map[string]string{
 		"plugin.json": `{"name": "a", "main": "main.js", "contributes": {"commands": [{"id": "a.x", "title": "X"}]}}`,
-		"main.js":     `import { commands } from "mayoi"; let n = 0; commands.register("a.x", () => ++n);`,
+		"main.js":     `import { commands } from "vibe"; let n = 0; commands.register("a.x", () => ++n);`,
 	})
 	r.Load()
 	r.Run("a.x", nil)
@@ -331,7 +331,7 @@ func TestReloadKeepsUnchanged(t *testing.T) {
 	}
 	time.Sleep(10 * time.Millisecond)
 	writePlugin(t, dirs.Plugins, "a", map[string]string{
-		"main.js": `import { commands } from "mayoi"; let n = 10; commands.register("a.x", () => ++n);`,
+		"main.js": `import { commands } from "vibe"; let n = 10; commands.register("a.x", () => ++n);`,
 	})
 	r.Load()
 	if res, _ := r.Run("a.x", nil); string(res) != "11" {
@@ -343,7 +343,7 @@ func TestPack(t *testing.T) {
 	r, _, dirs := newRegistry(t)
 	writePlugin(t, dirs.Plugins, "packed", map[string]string{
 		"plugin.json":                         `{"name": "packed", "main": "main.ts", "contributes": {"commands": [{"id": "packed.x", "title": "X"}]}}`,
-		"main.ts":                             `import { commands } from "mayoi"; import { shout } from "shouty"; import pad from "@acme/pad/left"; commands.register("packed.x", (s?: string) => pad(shout(s ?? "")));`,
+		"main.ts":                             `import { commands } from "vibe"; import { shout } from "shouty"; import pad from "@acme/pad/left"; commands.register("packed.x", (s?: string) => pad(shout(s ?? "")));`,
 		"node_modules/shouty/package.json":    `{"name": "shouty", "exports": {".": {"import": "./dist/index.mjs", "require": "./dist/index.cjs"}}}`,
 		"node_modules/shouty/dist/index.mjs":  `import { bang } from "./bang.mjs"; export function shout(s) { return bang(s.toUpperCase()); }`,
 		"node_modules/shouty/dist/bang.mjs":   `export const bang = (s) => s + "!";`,
@@ -367,7 +367,7 @@ func TestPack(t *testing.T) {
 }
 
 // Load notes where each plugin of the folder came from: Git, as
-// plugins.json says, or a link, as mayoi plugin dev makes.
+// plugins.json says, or a link, as vibe plugin dev makes.
 func TestOrigin(t *testing.T) {
 	r, _, dirs := newRegistry(t)
 	writePlugin(t, dirs.Plugins, "from-git", map[string]string{"plugin.json": `{"name": "from-git", "author": "Ann"}`})
@@ -399,7 +399,7 @@ func TestStateIsOneOfALife(t *testing.T) {
 	r, h, dirs := newRegistry(t)
 	writePlugin(t, dirs.Plugins, "life", map[string]string{
 		"plugin.json": `{"name": "life", "main": "main.js", "contributes": {"commands": [{"id": "life.x", "title": "X"}]}}`,
-		"main.js":     `import { commands } from "mayoi"; commands.register("life.x", () => 1);`,
+		"main.js":     `import { commands } from "vibe"; commands.register("life.x", () => 1);`,
 	})
 	writePlugin(t, dirs.Plugins, "look", map[string]string{
 		"plugin.json": `{"name": "look", "contributes": {"commands": []}}`,

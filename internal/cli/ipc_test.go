@@ -65,7 +65,7 @@ func TestClient(t *testing.T) {
 		}
 		return status, out.String(), errs.String()
 	}
-	if s, out, _ := run("-v"); s != 0 || out != "Mayoi 1.2\n" {
+	if s, out, _ := run("-v"); s != 0 || out != "Vibe 1.2\n" {
 		t.Errorf("-v: %d %q", s, out)
 	}
 	if s, _, errs := run("-q"); s != 2 || !strings.Contains(errs, "unknown option") {
@@ -80,7 +80,7 @@ func TestClient(t *testing.T) {
 		t.Errorf("start and ask: %d %q %v", s, out, started)
 	}
 	<-got
-	if s, _, errs := run("run", "x.y"); s != 1 || errs != "mayoi: no command x.y\n" {
+	if s, _, errs := run("run", "x.y"); s != 1 || errs != "vibe: no command x.y\n" {
 		t.Errorf("error: %d %q", s, errs)
 	}
 	<-got

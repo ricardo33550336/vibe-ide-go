@@ -16,7 +16,7 @@ import (
 // this machine.
 func connectFake(t *testing.T) *Conn {
 	t.Helper()
-	host := os.Getenv("MAYOI_SSH_TEST_HOST")
+	host := os.Getenv("VIBE_SSH_TEST_HOST")
 	if host == "" {
 		needsShell(t)
 		host = "fake.invalid"
@@ -83,7 +83,7 @@ func TestTransfer(t *testing.T) {
 	if l, _ := os.Readlink(host + "/dir/link"); l != "sub/deep.txt" {
 		t.Errorf("link = %q", l)
 	}
-	if left, _ := filepath.Glob(host + "/.mayoi-paste.*"); len(left) > 0 {
+	if left, _ := filepath.Glob(host + "/.vibe-paste.*"); len(left) > 0 {
 		t.Errorf("left %q", left)
 	}
 
@@ -149,7 +149,7 @@ done
 ` + fakeSSH
 
 func TestForward(t *testing.T) {
-	host := os.Getenv("MAYOI_SSH_TEST_HOST")
+	host := os.Getenv("VIBE_SSH_TEST_HOST")
 	if host == "" {
 		needsShell(t)
 		host = "fake-forward.invalid"

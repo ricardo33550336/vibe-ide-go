@@ -8,7 +8,7 @@ import (
 
 // When is the condition of a binding, as VS Code writes it: names of
 // contexts with !, &&, || and parentheses. A comparison, as
-// "resourceExtname == .go", holds for != only: Mayoi's contexts have no
+// "resourceExtname == .go", holds for != only: Vibe's contexts have no
 // values.
 type When struct {
 	op       string // "name", "!", "&&", "||", "==", "!="

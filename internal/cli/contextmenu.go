@@ -1,7 +1,7 @@
 package cli
 
 // contextMenu is a class whose right-click menu in Explorer has the
-// "Open with Mayoi" item, and the argument it passes Mayoi: a file's or a
+// "Open with Vibe" item, and the argument it passes Vibe: a file's or a
 // folder's path, or the folder whose background was clicked.
 type contextMenu struct{ class, arg string }
 
@@ -17,5 +17,5 @@ var contextMenus = []contextMenu{
 // installer names it, so that the two never make two items.
 func (m contextMenu) key() string { return `Software\Classes\` + m.class + `\shell\` + bundleID }
 
-// command is what the item runs: Mayoi.exe at exe with the path.
+// command is what the item runs: Vibe.exe at exe with the path.
 func (m contextMenu) command(exe string) string { return `"` + exe + `" "` + m.arg + `"` }

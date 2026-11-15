@@ -1,4 +1,4 @@
-import { commands, editor, events, settings, statusItem, window, type Document } from "mayoi";
+import { commands, editor, events, settings, statusItem, window, type Document } from "vibe";
 
 const status = statusItem("word-count.status");
 const languages = new Set(["markdown", "plaintext"]);

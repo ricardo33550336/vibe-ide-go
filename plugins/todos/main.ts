@@ -1,4 +1,4 @@
-import { commands, events, settings, views, workspace, type ViewTreeItem } from "mayoi";
+import { commands, events, settings, views, workspace, type ViewTreeItem } from "vibe";
 
 interface Todo {
   file: string;

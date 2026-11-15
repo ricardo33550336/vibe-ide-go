@@ -29,7 +29,7 @@ const (
 )
 
 // Agent is what is known of an agent: its id, its names, its mark, how
-// its sessions are listed and how one of them is resumed. The agents Mayoi
+// its sessions are listed and how one of them is resumed. The agents Vibe
 // knows and those plugins add are of this one shape, and listed alike.
 type Agent struct {
 	ID Harness
@@ -76,7 +76,7 @@ type TitleIndex struct {
 	Read func(path string) map[string]string
 }
 
-// Known are the agents Mayoi reads of itself, in the order they are named.
+// Known are the agents Vibe reads of itself, in the order they are named.
 var Known = []Agent{
 	{
 		ID: Claude, Name: "Claude Code", App: "claude-code",

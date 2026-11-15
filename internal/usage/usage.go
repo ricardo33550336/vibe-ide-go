@@ -1,4 +1,4 @@
-// Package usage sends anonymous counts of Mayoi's use, how many run it
+// Package usage sends anonymous counts of Vibe's use, how many run it
 // each day and on which version and system, to Umami at
 // umami.sorrycc.dev, as events of a website that stands for the app.
 //
@@ -22,13 +22,13 @@ import (
 )
 
 // URL is the Umami that takes the events.
-const URL = "https://umami.sorrycc.dev"
+const URL = ""
 
-// Website is the id of Umami's website for the Mayoi app.
-const Website = "58063f56-bb85-4342-99f9-4f34a5c0f00a"
+// Website is the id of Umami's website for the Vibe app.
+const Website = ""
 
 // hostname is the website's domain, which Umami shows the events under.
-const hostname = "app.usemayoi.com"
+const hostname = "vibe"
 
 // Client sends events to an Umami.
 type Client struct {
@@ -39,7 +39,7 @@ type Client struct {
 	HTTPClient *http.Client
 }
 
-// New returns a Client for Mayoi at version.
+// New returns a Client for Vibe at version.
 func New(baseURL, website, version string) *Client {
 	return &Client{
 		BaseURL: strings.TrimRight(baseURL, "/"), Website: website,
@@ -49,7 +49,7 @@ func New(baseURL, website, version string) *Client {
 }
 
 // UserAgent is a browser's user agent for the system, which Umami reads
-// the operating system from, with Mayoi's version at the end.
+// the operating system from, with Vibe's version at the end.
 func UserAgent(goos, arch, version string) string {
 	system := "X11; Linux x86_64"
 	switch {
@@ -60,7 +60,7 @@ func UserAgent(goos, arch, version string) string {
 	case arch == "arm64":
 		system = "X11; Linux aarch64"
 	}
-	return fmt.Sprintf("Mozilla/5.0 (%s) Mayoi/%s", system, version)
+	return fmt.Sprintf("Mozilla/5.0 (%s) Vibe/%s", system, version)
 }
 
 // Payload is what Umami's /api/send takes of an event.
@@ -77,14 +77,14 @@ type Payload struct {
 // Event is the payload of the event name with data, in language, such as
 // "zh-Hans".
 func (c *Client) Event(name, language string, data map[string]any) Payload {
-	return Payload{Website: c.Website, Hostname: hostname, URL: "/", Title: "Mayoi", Language: language, Name: name, Data: data}
+	return Payload{Website: c.Website, Hostname: hostname, URL: "/", Title: "Vibe", Language: language, Name: name, Data: data}
 }
 
 // View is the payload of a page view of /version, which Umami's
 // dashboard counts as a visitor, by system, country and version, as it
 // doesn't events.
 func (c *Client) View(version, language string) Payload {
-	return Payload{Website: c.Website, Hostname: hostname, URL: "/" + version, Title: "Mayoi " + version, Language: language}
+	return Payload{Website: c.Website, Hostname: hostname, URL: "/" + version, Title: "Vibe " + version, Language: language}
 }
 
 // Send sends the event p.

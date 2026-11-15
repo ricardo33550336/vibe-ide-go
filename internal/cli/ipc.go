@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// SocketPath is where the app of the data folder dir answers the mayoi
+// SocketPath is where the app of the data folder dir answers the vibe
 // command: in the folder, else, where that is too long a path for a
 // socket, in the temporary folder by a name of its own.
 func SocketPath(dir string) string {
@@ -26,7 +26,7 @@ func SocketPath(dir string) string {
 	if uid < 0 { // Windows has no numeric user ID.
 		uid = 0
 	}
-	file := "mayoi-" + strconv.Itoa(uid) + "-" + hex.EncodeToString(sum[:6]) + ".sock"
+	file := "vibe-" + strconv.Itoa(uid) + "-" + hex.EncodeToString(sum[:6]) + ".sock"
 	return filepath.Join(os.TempDir(), file)
 }
 

@@ -1,7 +1,6 @@
 package git
 
 import (
-	"mayoi/internal/cli"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,6 +8,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"vibe/internal/cli"
 )
 
 // TestMain has every git the tests run keep the line endings of the
@@ -185,7 +185,7 @@ func TestStageUnstageDiscardCommit(t *testing.T) {
 	}
 }
 
-// A hook finds the commands of the user's shell, which Mayoi opened from
+// A hook finds the commands of the user's shell, which Vibe opened from
 // the Finder takes as it starts (issue 82).
 func TestCommitHookFindsShellCommands(t *testing.T) {
 	if runtime.GOOS == "windows" {

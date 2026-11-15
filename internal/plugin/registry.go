@@ -32,8 +32,8 @@ type Host interface {
 	// Settings are the plugin's object of plugins.<name> in settings.json,
 	// nil for none.
 	Settings(name string) json.RawMessage
-	// MayoiSetting is a setting of Mayoi's own, by its key in settings.json.
-	MayoiSetting(key string) any
+	// VibeSetting is a setting of Vibe's own, by its key in settings.json.
+	VibeSetting(key string) any
 	// Folder is the folder of the window in front, "" for none.
 	Folder() string
 	// Changed tells that the plugins, what they contribute, or their state
@@ -52,7 +52,7 @@ type Dirs struct {
 	Bundled fs.FS
 }
 
-// LogLine is a line a plugin logged, or Mayoi logged of it.
+// LogLine is a line a plugin logged, or Vibe logged of it.
 type LogLine struct {
 	Time    time.Time
 	Plugin  string
@@ -67,7 +67,7 @@ const maxLog = 500
 // disabled until reloaded.
 const maxCrashes = 3
 
-// Plugin is a plugin Mayoi found: installed, bundled, or a user script.
+// Plugin is a plugin Vibe found: installed, bundled, or a user script.
 type Plugin struct {
 	Manifest
 	// Dir is the plugin's folder, "" for a bundled one.
@@ -168,7 +168,7 @@ func (p *Plugin) HoverLanguages() []string {
 // FS is the plugin's folder, for the files its contributions name.
 func (p *Plugin) FS() fs.FS { return p.fsys }
 
-// Log logs a line of Mayoi's about the plugin, as of a language server it
+// Log logs a line of Vibe's about the plugin, as of a language server it
 // declares.
 func (p *Plugin) Log(level, msg string) { p.logf(level, "%s", msg) }
 
@@ -188,12 +188,12 @@ func (p *Plugin) logf(level, format string, args ...any) {
 // Registry holds the plugins and runs them.
 type Registry struct {
 	Dirs    Dirs
-	Version string // Mayoi's
+	Version string // Vibe's
 	// Locale is the language plugins see, as "zh-Hans".
 	Locale func() string
 	// HTTP is the client of fetch.
 	HTTP *http.Client
-	// safe runs no plugin but the bundled ones: mayoi --disable-plugins.
+	// safe runs no plugin but the bundled ones: vibe --disable-plugins.
 	safe atomic.Bool
 
 	host Host
@@ -279,7 +279,7 @@ type Origin struct {
 	// says it was.
 	Source
 	FromGit bool
-	// Linked is set for a folder that is a link, as mayoi plugin dev
+	// Linked is set for a folder that is a link, as vibe plugin dev
 	// makes.
 	Linked bool
 }
@@ -314,7 +314,7 @@ func (r *Registry) Load() {
 			if strings.HasPrefix(e.Name(), ".") {
 				continue
 			}
-			// A plugin linked by mayoi plugin dev is a symlink to a folder.
+			// A plugin linked by vibe plugin dev is a symlink to a folder.
 			if st, err := os.Stat(dir); err != nil || !st.IsDir() {
 				continue
 			}
@@ -395,8 +395,8 @@ func (r *Registry) read(fsys fs.FS, dir string, bundled bool) *Plugin {
 	}
 	if err != nil {
 		p.loadErr = err.Error()
-	} else if !Satisfies(r.Version, p.Mayoi) {
-		p.loadErr = fmt.Sprintf("it needs Mayoi %s, and this is %s", p.Mayoi, r.Version)
+	} else if !Satisfies(r.Version, p.Vibe) {
+		p.loadErr = fmt.Sprintf("it needs Vibe %s, and this is %s", p.Vibe, r.Version)
 	}
 	return p
 }
@@ -672,7 +672,7 @@ func (p *Plugin) ensure() (*instance, error) {
 	return in, nil
 }
 
-// follow notes how the plugin's runtime ends: stopped by Mayoi, or by
+// follow notes how the plugin's runtime ends: stopped by Vibe, or by
 // what it did, which counts toward disabling it.
 func (p *Plugin) follow(in *instance) {
 	<-in.done
@@ -742,7 +742,7 @@ func (r *Registry) Activate(event string) {
 }
 
 // Toggled follows the settings of the plugin of name as they turn it on or
-// off: it stops it when they turn it off, and starts it, as Mayoi starting
+// off: it stops it when they turn it off, and starts it, as Vibe starting
 // does, when they turn it on.
 func (r *Registry) Toggled(name string) {
 	p := r.Plugin(name)
@@ -896,9 +896,9 @@ func (r *Registry) callSync(p *Plugin, method string, args json.RawMessage) ([]b
 		res = r.Settings(p)[a.Key]
 	case "settings.all":
 		res = r.Settings(p)
-	case "settings.mayoi":
+	case "settings.vibe":
 		if r.host != nil {
-			res = r.host.MayoiSetting(a.Key)
+			res = r.host.VibeSetting(a.Key)
 		}
 	case "storage.get":
 		res = r.store(p, a.Folder)[a.Key]

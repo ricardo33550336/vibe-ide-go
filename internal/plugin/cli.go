@@ -12,14 +12,14 @@ import (
 	"time"
 )
 
-// UserDirs are the folders of the user's plugins: ~/.mayoi, or the data
-// folder MAYOI_DATA_DIR names, so that a trial setup and the tests leave
-// ~/.mayoi alone.
+// UserDirs are the folders of the user's plugins: ~/.vibe, or the data
+// folder VIBE_DATA_DIR names, so that a trial setup and the tests leave
+// ~/.vibe alone.
 func UserDirs() Dirs {
-	base := os.Getenv("MAYOI_DATA_DIR")
+	base := os.Getenv("VIBE_DATA_DIR")
 	if base == "" {
 		home, _ := os.UserHomeDir()
-		base = filepath.Join(home, ".mayoi")
+		base = filepath.Join(home, ".vibe")
 	}
 	return Dirs{
 		Plugins: filepath.Join(base, "plugins"),
@@ -28,32 +28,32 @@ func UserDirs() Dirs {
 	}
 }
 
-// CLIUsage is what mayoi plugin --help prints.
-const CLIUsage = `Usage: mayoi plugin <command> [arguments]
+// CLIUsage is what vibe plugin --help prints.
+const CLIUsage = `Usage: vibe plugin <command> [arguments]
 
-Manages the plugins in %s. A running Mayoi loads changes at once.
+Manages the plugins in %s. A running Vibe loads changes at once.
 
 Commands:
   new <name> [folder]       Write a new plugin into folder, ./<name> by default
   dev [folder]              Load a plugin from its folder, . by default, and again on each save
   install <source>[@ref]    Install from a Git URL, owner/repo of GitHub, or a name of the index
   update [name]...          Update plugins installed from Git, all by default
-  remove <name>...          Remove plugins, or the links of mayoi plugin dev
+  remove <name>...          Remove plugins, or the links of vibe plugin dev
   list                      List the installed plugins
   search [text]             Search the index of plugins
   pack [folder]             Copy the npm packages a plugin imports into vendor/
 
 Examples:
-  mayoi plugin new word-count
-  mayoi plugin install me/my-plugin
-  mayoi plugin install https://github.com/me/my-plugin.git@v1.2.0
+  vibe plugin new word-count
+  vibe plugin install me/my-plugin
+  vibe plugin install https://github.com/me/my-plugin.git@v1.2.0
 `
 
-// RunCLI runs mayoi plugin with its arguments, and returns the status to
+// RunCLI runs vibe plugin with its arguments, and returns the status to
 // exit with.
 func RunCLI(args []string, dirs Dirs, stdout, stderr io.Writer) int {
 	fail := func(format string, a ...any) int {
-		fmt.Fprintf(stderr, "mayoi plugin: "+format+"\n", a...)
+		fmt.Fprintf(stderr, "vibe plugin: "+format+"\n", a...)
 		return 1
 	}
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" || args[0] == "help" {
@@ -78,7 +78,7 @@ func RunCLI(args []string, dirs Dirs, stdout, stderr io.Writer) int {
 		if err := Scaffold(dir, rest[0]); err != nil {
 			return fail("%v", err)
 		}
-		fmt.Fprintf(stdout, "Wrote %s. Try it with:\n  cd %s && mayoi plugin dev\n", dir, dir)
+		fmt.Fprintf(stdout, "Wrote %s. Try it with:\n  cd %s && vibe plugin dev\n", dir, dir)
 	case "dev":
 		dir := "."
 		if len(rest) > 0 {
@@ -88,8 +88,8 @@ func RunCLI(args []string, dirs Dirs, stdout, stderr io.Writer) int {
 		if err != nil {
 			return fail("%v", err)
 		}
-		fmt.Fprintf(stdout, "Linked %s: Mayoi loads it from %s, and again on each save.\n", m.Name, dir)
-		fmt.Fprintf(stdout, "Its log is in Mayoi under Plugins: Show Log. Unlink it with mayoi plugin remove %s.\n", m.Name)
+		fmt.Fprintf(stdout, "Linked %s: Vibe loads it from %s, and again on each save.\n", m.Name, dir)
+		fmt.Fprintf(stdout, "Its log is in Vibe under Plugins: Show Log. Unlink it with vibe plugin remove %s.\n", m.Name)
 	case "install":
 		if len(rest) != 1 {
 			return fail("install needs one source")
@@ -108,7 +108,7 @@ func RunCLI(args []string, dirs Dirs, stdout, stderr io.Writer) int {
 				}
 			}
 			if !found {
-				return fail("no plugin %s in the index: mayoi plugin search lists them", url)
+				return fail("no plugin %s in the index: vibe plugin search lists them", url)
 			}
 		}
 		m, err := Install(ctx, dirs.Plugins, url, ref)
@@ -211,7 +211,7 @@ func RunCLI(args []string, dirs Dirs, stdout, stderr io.Writer) int {
 		}
 		fmt.Fprintf(stdout, "Copied %d files into %s and pointed %d of the plugin's files at them.\n", len(res.Files), VendorDir, len(res.Rewrote))
 	default:
-		return fail("no command %s: mayoi plugin --help lists them", sub)
+		return fail("no command %s: vibe plugin --help lists them", sub)
 	}
 	return 0
 }

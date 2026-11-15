@@ -9,7 +9,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
-	"mayoi/internal/linediff"
+	"vibe/internal/linediff"
 )
 
 func gitRun(t *testing.T, dir string, args ...string) {

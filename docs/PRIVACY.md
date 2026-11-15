@@ -1,6 +1,6 @@
 # Privacy
 
-What Mayoi and usemayoi.com send, and where. Nothing else leaves your machine unless you ask for it, as when you sign
+What Mayoi and github.com/ricardo33550336/vibe-ide-go send, and where. Nothing else leaves your machine unless you ask for it, as when you sign
 in, push to a remote or open an SSH folder.
 
 ## Usage counts
@@ -30,7 +30,7 @@ only when you say so, or when `crashReports` is `"always"`. See [`crashReports`]
 
 Mayoi asks GitHub for the latest release once an hour, as any download from GitHub does.
 
-## usemayoi.com
+## github.com/ricardo33550336/vibe-ide-go
 
 The website counts visits with the same Umami, without cookies, and not at all when your browser sends Do Not Track. It
 also counts clicks on the download and GitHub links, and which platform's install command is copied.

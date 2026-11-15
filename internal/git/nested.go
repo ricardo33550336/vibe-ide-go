@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"mayoi/internal/vfs"
+	"vibe/internal/vfs"
 )
 
 // NestedDepth is how many folders deep Nested looks under a folder that is

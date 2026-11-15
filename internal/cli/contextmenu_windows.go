@@ -8,9 +8,9 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-// AddContextMenu adds label, as "Open with Mayoi", to Explorer's
+// AddContextMenu adds label, as "Open with Vibe", to Explorer's
 // right-click menu of files, folders and a folder's background, opening
-// them with Mayoi.exe at exe.
+// them with Vibe.exe at exe.
 func AddContextMenu(exe, label string) error {
 	defer notifyAssociations()
 	for _, m := range contextMenus {
@@ -41,7 +41,7 @@ func writeContextMenu(m contextMenu, exe, label string) error {
 	return cmd.SetStringValue("", m.command(exe))
 }
 
-// RemoveContextMenu takes the item off Explorer's menus, whether Mayoi or
+// RemoveContextMenu takes the item off Explorer's menus, whether Vibe or
 // its installer added it, and reports whether there was one.
 func RemoveContextMenu() (bool, error) {
 	removed := false
@@ -62,8 +62,8 @@ func RemoveContextMenu() (bool, error) {
 	return removed, nil
 }
 
-// RefreshContextMenu points the item at Mayoi.exe at exe when it opens
-// another one, as one Mayoi installed elsewhere added, and keeps label.
+// RefreshContextMenu points the item at Vibe.exe at exe when it opens
+// another one, as one Vibe installed elsewhere added, and keeps label.
 // It adds no item where there is none.
 func RefreshContextMenu(exe string) {
 	changed := false

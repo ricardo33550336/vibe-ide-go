@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"mayoi/internal/lsp/lsptest"
+	"vibe/internal/lsp/lsptest"
 )
 
 // TestMain runs the test binary as a fake language server when asked.
 func TestMain(m *testing.M) {
-	if os.Getenv("MAYOI_FAKE_LSP") == "1" {
+	if os.Getenv("VIBE_FAKE_LSP") == "1" {
 		lsptest.Serve(os.Stdin, os.Stdout)
 		return
 	}
@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 
 func TestClient(t *testing.T) {
 	cmd := exec.Command(os.Args[0])
-	cmd.Env = append(os.Environ(), "MAYOI_FAKE_LSP=1")
+	cmd.Env = append(os.Environ(), "VIBE_FAKE_LSP=1")
 	diags := make(chan []Diagnostic, 4)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

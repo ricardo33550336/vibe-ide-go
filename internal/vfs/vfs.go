@@ -18,7 +18,7 @@ import (
 	"slices"
 	"strings"
 
-	"mayoi/internal/remote"
+	"vibe/internal/remote"
 )
 
 // IsRemote reports whether p is the path of a file of another machine.
@@ -131,7 +131,7 @@ func WriteFile(p string, data []byte, perm fs.FileMode) (fs.FileInfo, error) {
 	if info, err := os.Stat(p); err == nil {
 		mode = info.Mode().Perm()
 	}
-	tmp, err := os.CreateTemp(filepath.Dir(p), "."+filepath.Base(p)+".mayoi-*")
+	tmp, err := os.CreateTemp(filepath.Dir(p), "."+filepath.Base(p)+".vibe-*")
 	if err != nil {
 		if err := os.WriteFile(p, data, mode); err != nil {
 			return nil, err

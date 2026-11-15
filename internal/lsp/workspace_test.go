@@ -273,7 +273,7 @@ func TestNotifyWaitsForSlowReader(t *testing.T) {
 
 func TestChildExitWithCopiedStdin(t *testing.T) {
 	cmd := exec.Command(os.Args[0])
-	cmd.Env = append(os.Environ(), "MAYOI_FAKE_LSP=1")
+	cmd.Env = append(os.Environ(), "VIBE_FAKE_LSP=1")
 	r, w := io.Pipe()
 	defer r.Close()
 	cmd.Stdin = r

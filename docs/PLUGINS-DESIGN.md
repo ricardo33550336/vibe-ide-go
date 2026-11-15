@@ -58,7 +58,7 @@ how:
 | -------------------- | --------------------------------------------------------------------------------------------- |
 | Runtime              | [moejs](https://github.com/MoeForge/moejs) v0.1.0, pure Go, with its `eventloop` and `webapi` |
 | Trust                | Trusted like settings: no permission prompts                                                  |
-| Install              | A folder in `~/.mayoi/plugins`, plus `mayoi plugin install <git-url>`                         |
+| Install              | A folder in `~/.vibe/plugins`, plus `mayoi plugin install <git-url>`                         |
 | UI                   | Declarative native views, plus an opt-in webview panel                                        |
 | Built-in features    | Move gradually onto the API as bundled plugins                                                |
 | Language features    | Diagnostics and formatters first, an LSP client later                                         |
@@ -140,7 +140,7 @@ code that is blocked. Each plugin's CPU time, memory and activation time are kep
 A folder with a manifest and an entry module:
 
 ```
-~/.mayoi/plugins/
+~/.vibe/plugins/
   word-count/
     plugin.json
     main.ts
@@ -210,7 +210,7 @@ commands.register("word-count.show", async () => {
 A **user script** is a single `.ts` file in `scripts/` with no manifest. Each `export function` becomes a command,
 `script.<file>.<function>`, in the palette, the keymap and `mayoi run`. It is the place for personal macros.
 
-## The `mayoi` module
+## The `vibe` module
 
 Every call that touches the editor is async: it goes to the main thread and back. Types are generated from Go
 (MyGo's `tsgen`) into `mayoi.d.ts`, which `mayoi plugin new` writes into the folder and `@mayoi/types` publishes.
@@ -223,7 +223,7 @@ Every call that touches the editor is async: it goes to the main thread and back
 | `workspace`   | `root`, `isRemote`, `open(path, {line})`, `findFiles(glob)`, `readFile`, `writeFile`, `stat`, all via vfs | 0   |
 | `window`      | `notify`, `fail`, `pick(items)` (quick open's box), `prompt` (the prompt box), `progress`              | 0     |
 | `settings`    | the plugin's settings, read and watched; `get` of Mayoi's own                                           | 0     |
-| `storage`     | a JSON store per plugin, global and per folder, in `~/.mayoi/storage`                                   | 0     |
+| `storage`     | a JSON store per plugin, global and per folder, in `~/.vibe/storage`                                   | 0     |
 | `log`         | to the plugin's log                                                                                     | 0     |
 | `events`      | `editor.open`, `editor.change`, `editor.focus`, `editor.willSave` (may return edits), `editor.didSave`, `workspace.changed`, `git.changed`, `theme.changed` | 1 |
 | `process`     | `run(cmd, args, {cwd, input})` on the folder's machine, through `vfs.Command`                           | 1     |
@@ -330,19 +330,19 @@ Calls on a remote folder take a round trip, which is why every API is async.
 
 | Folder                              | What                                                         |
 | ----------------------------------- | ------------------------------------------------------------ |
-| `~/.mayoi/plugins/<name>/`          | installed plugins, one folder each                           |
-| `~/.mayoi/plugins/plugins.json`     | written by Mayoi: each plugin's source URL, ref and commit   |
-| `~/.mayoi/scripts/`                 | user scripts                                                  |
-| `~/.mayoi/storage/<name>/`          | what `storage` keeps                                          |
+| `~/.vibe/plugins/<name>/`          | installed plugins, one folder each                           |
+| `~/.vibe/plugins/plugins.json`     | written by Mayoi: each plugin's source URL, ref and commit   |
+| `~/.vibe/scripts/`                 | user scripts                                                  |
+| `~/.vibe/storage/<name>/`          | what `storage` keeps                                          |
 | bundled, in the app                 | plugins embedded with `go:embed`                              |
 
-Plugins live in `~/.mayoi` on every system (`%USERPROFILE%\.mayoi` on Windows), not in the data folder that
+Plugins live in `~/.vibe` on every system (`%USERPROFILE%\.mayoi` on Windows), not in the data folder that
 `docs/SETTINGS.md` describes: it is a short, fixed path that people, agents and dotfile repositories find without
 knowing the system's conventions. Settings and state stay in the data folder. Two details:
 
-- With `MAYOI_DATA_DIR` set, plugins, scripts and storage are read from that folder instead, so a trial setup and
-  the tests never touch `~/.mayoi`.
-- Opening the home folder itself reads `~/.mayoi/settings.json` as that folder's settings, as with any folder.
+- With `VIBE_DATA_DIR` set, plugins, scripts and storage are read from that folder instead, so a trial setup and
+  the tests never touch `~/.vibe`.
+- Opening the home folder itself reads `~/.vibe/settings.json` as that folder's settings, as with any folder.
   The plugin folders beside it don't affect that.
 
 The plugins folder is watched: a plugin added, changed or removed is loaded again, the way `settings.json` is
@@ -431,14 +431,14 @@ New:
 | `internal/plugin/registry.go` | finding plugins, contributions, activation events, enabling and disabling             |
 | `internal/plugin/actor.go`    | the goroutine, mailbox, watchdog and budgets of one plugin                           |
 | `internal/plugin/runtime.go`  | the only file that imports moejs: compile, importer, options, event loop, errors      |
-| `internal/plugin/api.go`      | the `mayoi` module, calling a `Host` interface that the app implements                |
+| `internal/plugin/api.go`      | the `vibe` module, calling a `Host` interface that the app implements                |
 | `internal/plugin/install.go`  | install, update, remove, `plugins.json`                                               |
 | `internal/plugin/types/`      | `mayoi.d.ts`, generated, and `go generate` for it                                     |
-| `cmd/mayoi/plugins.go`        | the `Host`: commands, editors, documents, notifications, through `a.post`            |
-| `cmd/mayoi/pluginview.go`     | drawing declarative views                                                             |
-| `cmd/mayoi/pluginweb.go`      | webview panels                                                                         |
-| `cmd/mayoi/problems.go`       | diagnostics in the editor and the Problems view                                       |
-| `cmd/mayoi/pluginlog.go`      | the Plugin Log tab and Show Running Plugins                                           |
+| `cmd/vibe/plugins.go`        | the `Host`: commands, editors, documents, notifications, through `a.post`            |
+| `cmd/vibe/pluginview.go`     | drawing declarative views                                                             |
+| `cmd/vibe/pluginweb.go`      | webview panels                                                                         |
+| `cmd/vibe/problems.go`       | diagnostics in the editor and the Problems view                                       |
+| `cmd/vibe/pluginlog.go`      | the Plugin Log tab and Show Running Plugins                                           |
 | `plugins/`                    | bundled plugins, embedded                                                              |
 | `docs/PLUGINS.md`             | the author's guide                                                                    |
 
@@ -447,15 +447,15 @@ Changed:
 | Path                                 | Change                                                                       |
 | ------------------------------------ | ---------------------------------------------------------------------------- |
 | `go.mod`                             | moejs v0.1.0                                                                  |
-| `cmd/mayoi/commands.go`              | plugin commands in `commandsIn`; Reload Plugins, Open Plugins Folder, Show Running Plugins, Run Selection as Script |
-| `cmd/mayoi/commandpalette.go`        | `commandGroup` for plugin and script ids                                     |
-| `cmd/mayoi/keymap.go`                | plugin keybindings between the defaults and the user's                       |
-| `cmd/mayoi/platform.go`              | the Plugins menu and context-menu items                                      |
-| `cmd/mayoi/app.go`                   | `saveDoc` waits for `willSave`; open and change events                       |
-| `cmd/mayoi/view.go`, `sidebar.go`    | plugin status items and sidebar slots                                        |
-| `cmd/mayoi/decorations.go`           | diagnostic underlines                                                         |
-| `cmd/mayoi/main.go`                  | start the registry; `--disable-plugins`                                      |
-| `cmd/mayoi/prefswindow.go`           | plugin settings sections; the Plugins page in phase 4                       |
+| `cmd/vibe/commands.go`              | plugin commands in `commandsIn`; Reload Plugins, Open Plugins Folder, Show Running Plugins, Run Selection as Script |
+| `cmd/vibe/commandpalette.go`        | `commandGroup` for plugin and script ids                                     |
+| `cmd/vibe/keymap.go`                | plugin keybindings between the defaults and the user's                       |
+| `cmd/vibe/platform.go`              | the Plugins menu and context-menu items                                      |
+| `cmd/vibe/app.go`                   | `saveDoc` waits for `willSave`; open and change events                       |
+| `cmd/vibe/view.go`, `sidebar.go`    | plugin status items and sidebar slots                                        |
+| `cmd/vibe/decorations.go`           | diagnostic underlines                                                         |
+| `cmd/vibe/main.go`                  | start the registry; `--disable-plugins`                                      |
+| `cmd/vibe/prefswindow.go`           | plugin settings sections; the Plugins page in phase 4                       |
 | `internal/cli/request.go`            | the `plugin` subcommand                                                      |
 | `internal/settings`                  | `Plugins`, `FormatOnSave` in `Prefs`; schema of plugin settings             |
 | `internal/cloudsync`                 | `plugins.json` (phase 4)                                                     |
@@ -497,8 +497,8 @@ plugins.
 
 - **moejs is young.** Pinned, wrapped in one file, smoke-tested on upgrade. If it stalls, the wrapper is where goja or
   a fork would go in.
-- **The API is a promise.** Once plugins exist, changing the `mayoi` module breaks them. Phase 0 marks the API
-  unstable in the docs, and the `mayoi` field of the manifest lets Mayoi refuse a plugin it would break.
+- **The API is a promise.** Once plugins exist, changing the `vibe` module breaks them. Phase 0 marks the API
+  unstable in the docs, and the `vibe` field of the manifest lets Mayoi refuse a plugin it would break.
 - **Blocking host calls.** An interrupt does not stop Go code that waits, so every host function takes the call's
   context. A test checks each one.
 - **Frames.** Plugin views are drawn each frame from the last tree a plugin sent, never by calling the plugin during a

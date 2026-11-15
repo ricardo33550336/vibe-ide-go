@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"mayoi/internal/remote"
-	"mayoi/internal/vfs"
+	"vibe/internal/remote"
+	"vibe/internal/vfs"
 )
 
 // Submodules opens the initialized gitlinks in this work tree's index, of

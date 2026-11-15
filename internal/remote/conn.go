@@ -199,7 +199,7 @@ func (c *Conn) socket() (string, error) {
 	defer c.mu.Unlock()
 	if c.dir == "" {
 		// Short, as a socket's path is at most about 100 bytes.
-		dir, err := os.MkdirTemp("", "mayoi-ssh-")
+		dir, err := os.MkdirTemp("", "vibe-ssh-")
 		if err != nil {
 			return "", err
 		}
@@ -549,7 +549,7 @@ func sshError(stderr string, fallback error) error {
 	case strings.Contains(msg, "Host key verification failed"):
 		return &refusedError{msg + " Connect once with ssh in a terminal to trust the host's key."}
 	case strings.Contains(msg, "Permission denied"):
-		return &refusedError{msg + " Mayoi signs in with keys and the SSH agent, not passwords."}
+		return &refusedError{msg + " Vibe signs in with keys and the SSH agent, not passwords."}
 	}
 	return errors.New(msg)
 }

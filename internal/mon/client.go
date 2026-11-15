@@ -1,4 +1,4 @@
-// Package mon signs Mayoi in to Mon, the account behind sorrycc's apps at
+// Package mon signs Vibe in to Mon, the account behind sorrycc's apps at
 // mon.sorrycc.dev, syncs its settings, asks Mon's AI gateway and sends
 // crash reports.
 //
@@ -9,13 +9,13 @@
 // access token.
 //
 //	c := mon.New("https://mon.sorrycc.dev")
-//	dc, err := c.StartDeviceLogin(ctx, "mayoi", hostname)
+//	dc, err := c.StartDeviceLogin(ctx, "vibe", hostname)
 //	// Show dc.UserCode and open dc.VerificationURIComplete in a browser.
 //	token, err := c.WaitForDeviceToken(ctx, dc)
 //	c.Token = token // store it in the keychain
 //
-//	st, err := c.GetSettings(ctx, "mayoi")
-//	st, err = c.PutSettings(ctx, "mayoi", st.Version, mySettings)
+//	st, err := c.GetSettings(ctx, "vibe")
+//	st, err = c.PutSettings(ctx, "vibe", st.Version, mySettings)
 //
 //	text, err := c.StreamMessage(ctx, mon.MessageRequest{
 //		Model: "deepseek-flash", MaxTokens: 4096,

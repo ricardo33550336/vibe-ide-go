@@ -1,5 +1,5 @@
-// Package settings keeps what Mayoi remembers between launches, in JSON
-// files: the preferences in one, and the state Mayoi keeps itself in
+// Package settings keeps what Vibe remembers between launches, in JSON
+// files: the preferences in one, and the state Vibe keeps itself in
 // another beside it.
 package settings
 
@@ -17,8 +17,8 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-// Settings are what Mayoi remembers between launches: the preferences,
-// in settings.json, and the state Mayoi keeps itself, in state.json
+// Settings are what Vibe remembers between launches: the preferences,
+// in settings.json, and the state Vibe keeps itself, in state.json
 // beside it. A window's frame is its StateKey's.
 type Settings struct {
 	Prefs
@@ -51,7 +51,7 @@ type Settings struct {
 	prefsChanged func()
 }
 
-// State is what Mayoi keeps itself, not what a person chooses: the
+// State is what Vibe keeps itself, not what a person chooses: the
 // recent folders, the windows with the folder, the layout and the files
 // open in each, and the sessions of the folders closed.
 type State struct {
@@ -102,7 +102,7 @@ type PluginSource struct {
 }
 
 // Prefs are the settings a person chooses, which an edit of the file
-// applies as Mayoi runs: not the windows and the layout it keeps itself.
+// applies as Vibe runs: not the windows and the layout it keeps itself.
 type Prefs struct {
 	// ZoomLevel scales all window content by 1.2 to this power.
 	ZoomLevel  float32 `json:"zoomLevel"`
@@ -198,7 +198,7 @@ type Prefs struct {
 	// "bloodmoon" for Blood Moon or "gtavi" for GTA VI, which are always
 	// dark, "claude" for Claude, "qoder" for Qoder,
 	// "grokbot" for Grok Bot or "cursor" for Cursor, light or dark as
-	// Appearance is, or "" for Mayoi's own.
+	// Appearance is, or "" for Vibe's own.
 	Theme string `json:"theme,omitempty"`
 	// SidebarRight puts the sidebar right of the editors, rather than left.
 	SidebarRight bool `json:"sidebarRight,omitempty"`
@@ -215,12 +215,12 @@ type Prefs struct {
 	// TerminalLocation is where a new terminal opens: "" in the panel, or
 	// "editor" in a tab of the editor area.
 	TerminalLocation string `json:"terminalLocation,omitempty"`
-	// TerminalBackend is what runs a terminal's shell: "" Mayoi itself,
+	// TerminalBackend is what runs a terminal's shell: "" Vibe itself,
 	// or "hc" a terminal of herdr-core, which outlives the window.
 	TerminalBackend string `json:"terminalBackend,omitempty"`
 	// TerminalBackendHcPath is the hc to run when TerminalBackend is
 	// "hc": a path to the program, a folder that has it, or a name on
-	// the path. Mayoi finds hc there first, and on the path or in
+	// the path. Vibe finds hc there first, and on the path or in
 	// ~/.local/bin without it.
 	TerminalBackendHcPath string `json:"terminalBackendHcPath,omitempty"`
 	// TerminalBackendHcEnv is the environment of hc's commands when
@@ -241,24 +241,24 @@ type Prefs struct {
 	// ProjectTabStyle is a project's own label, color and icon on the rail
 	// of project tabs, by its folder.
 	ProjectTabStyle map[string]TabStyle `json:"projectTabStyle,omitempty"`
-	// Locale is the language Mayoi shows, as "en", "zh-Hans" or "ja", or ""
+	// Locale is the language Vibe shows, as "en", "zh-Hans" or "ja", or ""
 	// for the one the system's languages prefer.
 	Locale string `json:"locale,omitempty"`
 	// AIModel is the model of Mon's AI gateway that writes commit
-	// messages, "" for Mayoi's choice.
+	// messages, "" for Vibe's choice.
 	AIModel string `json:"aiModel,omitempty"`
 	// AISecretFiles are patterns of files whose lines a commit message's
-	// AI never sees, after Mayoi's own: a name, or the end of a path with
+	// AI never sees, after Vibe's own: a name, or the end of a path with
 	// "/", its start with "/" first, "**" for any folders, "/" last for a
 	// folder, and "!" first to send a file that matched before. What looks
 	// like a key is left out whatever it says. A folder can't set it, so
 	// that a repository can't send what its cloner keeps out.
 	AISecretFiles []string `json:"aiSecretFiles,omitempty"`
-	// CrashReports is what Mayoi does with the report of a crash at the
+	// CrashReports is what Vibe does with the report of a crash at the
 	// next launch: "" asks whether to send it to Mon, "always" sends it
 	// and "never" doesn't.
 	CrashReports string `json:"crashReports,omitempty"`
-	// UsageStats sends anonymous counts of Mayoi's use: one a day while
+	// UsageStats sends anonymous counts of Vibe's use: one a day while
 	// it is open, and one as it updates, with its version and system.
 	UsageStats bool `json:"usageStats"`
 	// SyncIgnored is what settings sync leaves on this machine: keys of
@@ -276,7 +276,7 @@ type Prefs struct {
 	// several: the formatter's id, or its plugin's name.
 	Formatters map[string]string `json:"formatters,omitempty"`
 	// PluginSources are the plugins installed from Git and where each came
-	// from, as ~/.mayoi/plugins/plugins.json has them, which Mayoi keeps
+	// from, as ~/.vibe/plugins/plugins.json has them, which Vibe keeps
 	// here for settings sync to bring to the person's other machines.
 	PluginSources map[string]PluginSource `json:"pluginSources,omitempty"`
 }
@@ -318,7 +318,7 @@ const (
 
 // MachineKept are the keys of the preferences settings sync leaves on
 // this machine whatever SyncIgnored says, as a development build's looks,
-// which would otherwise change the everyday Mayoi's.
+// which would otherwise change the everyday Vibe's.
 var MachineKept []string
 
 // SyncKept returns the keys of the preferences settings sync leaves on

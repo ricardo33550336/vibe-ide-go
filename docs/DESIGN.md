@@ -7,7 +7,7 @@ The order: it works, then it is easy, then it looks good. Polish never covers a 
 
 ## Motion
 
-- Every animation takes its length from a token in `cmd/mayoi/motion.go`: `motionTap` (100 ms), `motionLeave`
+- Every animation takes its length from a token in `cmd/vibe/motion.go`: `motionTap` (100 ms), `motionLeave`
   (110), `motionHover` (120), `motionShow` (150), `motionMove` (200) and `motionEnter` (240); a ring that turns while something runs, once each `motionSpin`
   (1200), and the shapes of what loads the first time pulse at that pace too (`spinRing`, `pulseShape`). `TestMotionUsesTokens` fails on a length
   written out anywhere else.
@@ -55,12 +55,12 @@ The order: it works, then it is easy, then it looks good. Polish never covers a 
 
 - Each surface shows each of its states: empty, loading, error, offline or reconnecting, and with no permission.
 - The state gallery renders surfaces in their states across every theme, light and dark, and every language, into
-  one page: `GALLERY=<dir> go test -run TestGallery ./cmd/mayoi`, then open `<dir>/index.html`. Add a state to
+  one page: `GALLERY=<dir> go test -run TestGallery ./cmd/vibe`, then open `<dir>/index.html`. Add a state to
   `galleryStates` when you add a surface.
 
 ## Speed
 
-- `TestBudgets` (`cmd/mayoi/budget_test.go`) holds the cost of a frame to a budget: idle, scrolling, typing, typing
+- `TestBudgets` (`cmd/vibe/budget_test.go`) holds the cost of a frame to a budget: idle, scrolling, typing, typing
   with find open, Quick Open, the palette, 2,000 sessions scrolled, hovered and filtered, the GitHub view's 500 issues
   and pull requests scrolled, hovered and filtered, and a terminal printing as fast as it can. CI runs it on macOS.
   A change that needs more raises a budget in the same commit and says why.

@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"mayoi/internal/remote"
+	"vibe/internal/remote"
 )
 
-// Request is what the mayoi command asks the running app.
+// Request is what the vibe command asks the running app.
 type Request struct {
 	// Cwd is the directory the command ran in, which picks the project
 	// it acts on.
@@ -34,10 +34,10 @@ type Request struct {
 	Run []Command `json:"run,omitempty"`
 	// List asks for the commands.
 	List bool `json:"list,omitempty"`
-	// Settings is what `mayoi settings` asks of the preferences, which
+	// Settings is what `vibe settings` asks of the preferences, which
 	// the command does itself rather than the app.
 	Settings *Settings `json:"settings,omitempty"`
-	// DisablePlugins turns off the plugins but those Mayoi comes with,
+	// DisablePlugins turns off the plugins but those Vibe comes with,
 	// until the app starts again.
 	DisablePlugins bool `json:"disablePlugins,omitempty"`
 }
@@ -57,11 +57,11 @@ type Command struct {
 	Arg string `json:"arg,omitempty"`
 }
 
-// Settings is what `mayoi settings` does with the preferences: list
+// Settings is what `vibe settings` does with the preferences: list
 // them, read some, or change some.
 //
-// The mayoi command changes the settings' files itself, so that it works
-// while the app is not running, and a Mayoi running reads them again as
+// The vibe command changes the settings' files itself, so that it works
+// while the app is not running, and a Vibe running reads them again as
 // it does the file a person saves.
 type Settings struct {
 	// Verb is what it does with the preferences: "" or "list" lists them
@@ -75,7 +75,7 @@ type Settings struct {
 	// Changes are what it changes, in order.
 	Changes []Change `json:"changes,omitempty"`
 	// Folder acts on the preferences of the folder the command ran in,
-	// in its .mayoi/settings.json, rather than on the person's.
+	// in its .vibe/settings.json, rather than on the person's.
 	Folder bool `json:"folder,omitempty"`
 }
 
@@ -125,13 +125,13 @@ var (
 	ErrVersion = errors.New("version")
 )
 
-// Usage is what mayoi --help prints.
-const Usage = `Usage: mayoi [options] [folder or file]...
-       mayoi settings [list | get <key>... | set <key>=<value>... | unset <key>...]
-       mayoi run <command>[=<argument>]...
-       mayoi commands
+// Usage is what vibe --help prints.
+const Usage = `Usage: vibe [options] [folder or file]...
+       vibe settings [list | get <key>... | set <key>=<value>... | unset <key>...]
+       vibe run <command>[=<argument>]...
+       vibe commands
 
-Opens folders and files in Mayoi, starting it if it isn't running.
+Opens folders and files in Vibe, starting it if it isn't running.
 
 Options:
   -g, --goto <file:line[:column]>  Open a file at a line and column
@@ -141,7 +141,7 @@ Options:
   -f, --folder                     Act on the current folder's own settings
       --remote <host:/path>        Open a folder on an SSH host
       --window <folder>            Act on the window that has the folder open
-      --disable-plugins            Turn off the plugins until Mayoi starts again
+      --disable-plugins            Turn off the plugins until Vibe starts again
   -h, --help                       Print this help
   -v, --version                    Print the version
 
@@ -151,7 +151,7 @@ Commands:
                     value of a first launch again. A value is JSON when it is,
                     as 16, true or ["a"], else text, as claude. With
                     --folder, the preferences of the current folder, in its
-                    .mayoi/settings.json, of those a folder chooses.
+                    .vibe/settings.json, of those a folder chooses.
                     set key+=item adds an item to a list and key-=item takes
                     one away, rather than the list whole, and a look of a
                     project on the rail is told a field at a time, as
@@ -162,25 +162,25 @@ Commands:
                     file.openFolder=<folder> or go.line=<line[:column]>.
   commands          List the commands, their names, shortcuts and arguments
   plugin <command>  Install, update, remove, write and pack plugins: see
-                    mayoi plugin --help
+                    vibe plugin --help
 
 Examples:
-  mayoi .
-  mayoi -g main.go:42:7
-  mayoi -d old.txt new.txt
-  git config core.editor "mayoi -w"
-  mayoi run view.terminal git.pull
-  mayoi run view.theme.claude
-  mayoi settings
-  mayoi settings get theme
-  mayoi settings set fontSize=16 vim=true
-  mayoi settings --folder set autoSave=false
-  mayoi settings unset theme
-  mayoi settings set 'aiSecretFiles+=*.pem'
-  mayoi settings set projectTabStyle.'~/src/mayoi'.label=MG
+  vibe .
+  vibe -g main.go:42:7
+  vibe -d old.txt new.txt
+  git config core.editor "vibe -w"
+  vibe run view.terminal git.pull
+  vibe run view.theme.claude
+  vibe settings
+  vibe settings get theme
+  vibe settings set fontSize=16 vim=true
+  vibe settings --folder set autoSave=false
+  vibe settings unset theme
+  vibe settings set 'aiSecretFiles+=*.pem'
+  vibe settings set projectTabStyle.'~/src/vibe'.label=MG
 `
 
-// Parse reads the mayoi command's arguments, run in cwd.
+// Parse reads the vibe command's arguments, run in cwd.
 func Parse(args []string, cwd string) (Request, error) {
 	r := Request{Cwd: cwd}
 	abs := func(p string) string {
@@ -275,7 +275,7 @@ func Parse(args []string, cwd string) (Request, error) {
 			}
 		case "-f", "--folder":
 			if r.Settings == nil {
-				return r, fmt.Errorf("%s takes the settings: mayoi settings --folder set <key>=<value>", name)
+				return r, fmt.Errorf("%s takes the settings: vibe settings --folder set <key>=<value>", name)
 			}
 			r.Settings.Folder = true
 		case "--disable-plugins":
@@ -289,7 +289,7 @@ func Parse(args []string, cwd string) (Request, error) {
 	}
 	switch {
 	case sub == "run" && len(r.Run) == 0:
-		return r, errors.New("run needs a command: mayoi commands lists them")
+		return r, errors.New("run needs a command: vibe commands lists them")
 	case sub == "settings":
 		if r.Paths != nil || r.Diff != nil || r.Remote != "" || r.NewWindow || r.Wait || r.Window != "" || r.DisablePlugins {
 			return r, errors.New("settings takes only its preferences, and --folder")
@@ -308,23 +308,23 @@ func Parse(args []string, cwd string) (Request, error) {
 	return r, nil
 }
 
-// word takes a word of a mayoi settings: what it does with the
+// word takes a word of a vibe settings: what it does with the
 // preferences, or else a key to read, or a key and the value to give it.
 func (s *Settings) word(arg string) error {
 	if s.Verb == "" {
 		if len(s.Changes) > 0 {
-			return errors.New("a preference needs set or unset before it, as mayoi settings set fontSize=16")
+			return errors.New("a preference needs set or unset before it, as vibe settings set fontSize=16")
 		}
 		switch arg {
 		case "list", "get", "set", "unset":
 			s.Verb = arg
 			return nil
 		}
-		return fmt.Errorf("no settings command %q: mayoi settings lists, gets, sets or unsets them", arg)
+		return fmt.Errorf("no settings command %q: vibe settings lists, gets, sets or unsets them", arg)
 	}
 	switch s.Verb {
 	case "list":
-		return fmt.Errorf("list takes no %q: mayoi settings get <key> reads one", arg)
+		return fmt.Errorf("list takes no %q: vibe settings get <key> reads one", arg)
 	case "get":
 		s.Keys = append(s.Keys, arg)
 		return nil
@@ -361,23 +361,23 @@ func (s *Settings) item(op, key, item string) error {
 	return nil
 }
 
-// check reports what a mayoi settings lacks to do what it asks.
+// check reports what a vibe settings lacks to do what it asks.
 func (s *Settings) check() error {
 	switch s.Verb {
 	case "get":
 		if len(s.Changes) > 0 {
-			return errors.New("get only reads preferences: mayoi settings set changes them")
+			return errors.New("get only reads preferences: vibe settings set changes them")
 		}
 		if len(s.Keys) == 0 {
-			return errors.New("get needs a preference: mayoi settings lists them")
+			return errors.New("get needs a preference: vibe settings lists them")
 		}
 	case "list":
 		if len(s.Changes) > 0 {
-			return errors.New("list only reads preferences: mayoi settings set changes them")
+			return errors.New("list only reads preferences: vibe settings set changes them")
 		}
 	case "set", "unset":
 		if len(s.Changes) == 0 {
-			return fmt.Errorf("%s needs a preference: mayoi settings lists them", s.Verb)
+			return fmt.Errorf("%s needs a preference: vibe settings lists them", s.Verb)
 		}
 	}
 	return nil
@@ -414,7 +414,7 @@ func folderKey(key string, abs func(string) string) string {
 	return strings.Join(segs, ".")
 }
 
-// prefValue is the value of a preference as mayoi settings set gives it:
+// prefValue is the value of a preference as vibe settings set gives it:
 // the JSON where it is JSON, as 16, true or ["a"], else the text as it
 // is, which is a text of the settings.
 func prefValue(s string) json.RawMessage {

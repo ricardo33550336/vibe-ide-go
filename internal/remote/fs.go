@@ -310,7 +310,7 @@ func (c *Conn) WriteFile(p string, data []byte) (*FileInfo, error) {
 var ErrChanged = errors.New("the file changed on the host since it was read")
 
 // changedMark is what the script of WriteFileIf says of a file changed.
-const changedMark = "mayoi: changed since read"
+const changedMark = "vibe: changed since read"
 
 // WriteFileIf writes a file as WriteFile does, unless the file there no
 // longer has the Stamp stamp, which fails with ErrChanged and leaves it
@@ -322,7 +322,7 @@ func (c *Conn) WriteFileIf(p string, data []byte, stamp string) (*FileInfo, erro
   cur=$(` + st + ` -- "$1" | sed -n '1s/^\([^ ]* [^ ]*\) .*/\1/p')
   if [ "$cur" != "$3" ]; then cat > /dev/null; echo "` + changedMark + `" >&2; exit 3; fi
 fi
-t=$(mktemp "${TMPDIR:-/tmp}/mayoi.XXXXXX") || exit 1
+t=$(mktemp "${TMPDIR:-/tmp}/vibe.XXXXXX") || exit 1
 trap 'rm -f "$t"' EXIT
 cat > "$t" || exit 1
 n=$(wc -c < "$t")
@@ -436,7 +436,7 @@ find "$@" -prune -type f -size -"$max"c 2>/dev/null | {
 
 // lookMark parts what Look's command lists of the folders from what it
 // says of the files.
-const lookMark = "\x01mayoi-stat\x01\n"
+const lookMark = "\x01vibe-stat\x01\n"
 
 // Look lists folders and stats files of the host, following links, in one
 // command: the files that are not there are left out of the map.
@@ -452,7 +452,7 @@ for dir; do
   k=$((k+1))
   [ $k -le $n ] || break
 ` + readDirBody + `done
-printf '\001mayoi-stat\001\n'
+printf '\001vibe-stat\001\n'
 shift $n
 if [ $# -gt 0 ]; then ` + c.Info().statCmd(true) + ` -- "$@" 2>/dev/null; fi
 exit 0

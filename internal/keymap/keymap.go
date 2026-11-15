@@ -1,4 +1,4 @@
-// Package keymap reads the keyboard shortcuts a person adds to Mayoi's, in
+// Package keymap reads the keyboard shortcuts a person adds to Vibe's, in
 // keybindings.json, as VS Code writes them: a list of the keys, the
 // command they run with its arguments, and when they apply.
 package keymap
@@ -41,7 +41,7 @@ func (b *Binding) Removal() bool { return strings.HasPrefix(b.Command, "-") }
 type Map struct {
 	Bindings []Binding
 	// Errors say what of the file was left out, as a key with no name
-	// Mayoi knows.
+	// Vibe knows.
 	Errors []string
 }
 
@@ -55,7 +55,7 @@ func Path(settingsPath string) string {
 
 // Template is what a new file of shortcuts starts with.
 const Template = `// Keyboard shortcuts, in VS Code's format: "key" is a key or a chord as
-// "ctrl+. s", "command" is a command of Mayoi's or of VS Code's, and
+// "ctrl+. s", "command" is a command of Vibe's or of VS Code's, and
 // "when" when it applies, as "editorTextFocus" or "terminalFocus".
 [
 ]
@@ -149,7 +149,7 @@ func (m *Map) Lookup(seq []Stroke, ctx func(string) bool) (b *Binding, prefix bo
 }
 
 // Binds reports whether a binding of the file starts with s, or takes s
-// away from a command: the shortcuts of Mayoi's own on s let it be.
+// away from a command: the shortcuts of Vibe's own on s let it be.
 func (m *Map) Binds(s Stroke) bool {
 	if m == nil {
 		return false

@@ -13,9 +13,9 @@ import (
 )
 
 // FolderDir and FolderFile are where a folder keeps its own preferences:
-// .mayoi/settings.json in it.
+// .vibe/settings.json in it.
 const (
-	FolderDir  = ".mayoi"
+	FolderDir  = ".vibe"
 	FolderFile = "settings.json"
 )
 

@@ -1,8 +1,8 @@
 /build/
 /.mygo/
 mygo_windows_*.syso
-/mayoi
-/cmd/mayoi/mayoi
+/vibe
+/cmd/vibe/vibe
 *.test
 /.agents/
 /.claude/worktrees/

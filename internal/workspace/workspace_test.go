@@ -69,10 +69,10 @@ func TestTreeLoadsSortsAndFollowsTheDisk(t *testing.T) {
 
 func TestIndexSkipsAndFuzzyRanks(t *testing.T) {
 	root := t.TempDir()
-	mkfiles(t, root, "src/main.go", "src/domain/manifest.json", "node_modules/m/index.js", "docs/README.md", "cmd/mayoi/main_test.go")
+	mkfiles(t, root, "src/main.go", "src/domain/manifest.json", "node_modules/m/index.js", "docs/README.md", "cmd/vibe/main_test.go")
 	files := Index(root)
 	slices.Sort(files)
-	if want := []string{"cmd/mayoi/main_test.go", "docs/README.md", "src/domain/manifest.json", "src/main.go"}; !slices.Equal(files, want) {
+	if want := []string{"cmd/vibe/main_test.go", "docs/README.md", "src/domain/manifest.json", "src/main.go"}; !slices.Equal(files, want) {
 		t.Fatalf("index %v", files)
 	}
 	got := Fuzzy(files, "main", 10)
