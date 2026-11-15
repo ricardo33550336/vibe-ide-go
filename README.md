@@ -95,4 +95,6 @@ Vibe is not affiliated with Mayoi, Ghostty or the original vibe-ide project.
 
 ## License
 
-[MIT](LICENSE). See [NOTICE](NOTICE) for attribution.
+[MIT](LICENSE). See [NOTICE](NOTICE) and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution and the
+full third-party license texts.

@@ -13,10 +13,12 @@ License.
 Third-party components
 ----------------------
 
-- MyGo (https://github.com/egoist/mygo), MIT License.
-- Ghostty and libghostty-vt (https://github.com/ghostty-org/ghostty),
-  MIT License.
-- creack/pty (https://github.com/creack/pty), MIT License.
-- The Go modules listed in go.mod, each under its own license.
+Vibe also includes MyGo, Ghostty's libghostty-vt, creack/pty, MathJax, Pele,
+and the Go modules listed in go.mod. Their copyright notices and full
+license texts are in THIRD_PARTY_NOTICES.md and licenses/.
 
-Vibe is not affiliated with Mayoi, Ghostty, or the original vibe-ide project.
+The information architecture was inspired by vibe-ide, Copyright (c) 2026
+luguan, MIT License. No vibe-ide code is compiled into the app.
+
+Vibe is not affiliated with Mayoi, vibe-ide, Ghostty, or the original
+vibe-ide project.

@@ -226,5 +226,11 @@
       "Development",
       "TextEditor"
     ]
-  }
+  },
+  "resources": [
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md",
+    "licenses"
+  ]
 }
