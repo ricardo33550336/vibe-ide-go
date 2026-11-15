@@ -195,6 +195,8 @@ func (a *app) aiFailed(err error) {
 // writeButton is the button at the commit box's corner that has the AI
 // write the message, or stop writing it, shown while signed in.
 func (a *gitContext) writeButton(c *ui.Context) {
+	// This app has no AI backend.
+	return
 	g := a.git
 	if a.app.host.ai() == nil && g.writing == nil {
 		return

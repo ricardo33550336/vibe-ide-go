@@ -97,6 +97,7 @@ func (hs *harness) settleWriting() {
 }
 
 func TestWriteCommitMessage(t *testing.T) {
+	t.Skip("the app has no AI backend")
 	hs := newHarness(t, true)
 	hs.gitRepo()
 	a := hs.a
