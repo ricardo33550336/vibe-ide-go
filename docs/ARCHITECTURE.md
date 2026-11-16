@@ -245,8 +245,9 @@ stats the files open, every 3 seconds, at one round trip, reporting only what di
 distribution of WSL, which `filepath` takes as any other, so documents, the tree, Git and the settings keep it as they
 keep a local one. The connection to a host is an ssh master (`ControlMaster`) that every command goes through, with
 `BatchMode` so that it never asks for a password; a distribution has no process to hold, and `wsl.exe` runs each
-command there (`wsl.go`), the script reaching `sh` as its input rather than through the command line, which wsl.exe
-joins without quoting. A command is a
+command there (`wsl.go`), the launcher as an argument and the script on its input, which the launcher puts in a file
+that `sh` runs: nothing of the script is quoted through a command line, and no shell parses the input, which dash
+reads away in a buffer of its own before the launcher could. A command is a
 small POSIX shell script: `sh` on the host reads its length and then the script from what ssh sends, so that nothing of
 it goes through the login shell, which may be fish, and the rest of the input is the script's, as a file's text. It
 reads a folder with a loop of `[ -d ]`, stats with GNU's or BSD's `stat`, as the host has, reads files with `head -c`

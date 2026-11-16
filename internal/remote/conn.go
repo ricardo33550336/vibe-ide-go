@@ -309,6 +309,7 @@ func (c *Conn) dial(ctx context.Context) {
 		os.Remove(sock)
 		args := append(options(sock), "-o", "ControlMaster=yes", "-o", "ControlPersist=no", "-N")
 		cmd := exec.Command("ssh", append(args, hostArgs(c.Host)...)...)
+		hideWindow(cmd)
 		stderr = &syncBuffer{}
 		cmd.Stderr = stderr
 		if err := cmd.Start(); err != nil {
@@ -505,18 +506,17 @@ func (c *Conn) command(ctx context.Context, sock string, stdin io.Reader, script
 	b.WriteString(preamble)
 	b.WriteString(script)
 	full := b.String()
+	// The launcher, of the host or of the distribution, reads the length of
+	// the script from the input, then the script, and leaves the rest of it
+	// to the script.
+	head := strings.NewReader(strconv.Itoa(len(full)) + "\n" + full)
 	var cmd *exec.Cmd
-	var head io.Reader
 	if c.Scheme == WSL {
-		// sh reads the launcher and the script from its input, so that
-		// nothing of the script goes through wsl.exe's command line, which
-		// joins its arguments without quoting them.
 		cmd = exec.CommandContext(ctx, c.wslProgram(), wslScriptArgs(c.Host)...)
-		head = io.MultiReader(strings.NewReader(wslScriptInput+strconv.Itoa(len(full))+"\n"), strings.NewReader(full))
 	} else {
 		cmd = exec.CommandContext(ctx, "ssh", c.clientArgs(sock, false, launcher)...)
-		head = strings.NewReader(strconv.Itoa(len(full)) + "\n" + full)
 	}
+	hideWindow(cmd)
 	if stdin != nil {
 		cmd.Stdin = io.MultiReader(head, stdin)
 	} else {

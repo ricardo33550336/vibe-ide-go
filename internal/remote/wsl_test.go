@@ -6,7 +6,6 @@ import (
 	"io"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -145,23 +144,19 @@ func TestWSLCommands(t *testing.T) {
 func TestWSLCommand(t *testing.T) {
 	c := For(Key(WSL, "Ubuntu"))
 	cmd := c.command(context.Background(), "", nil, "printf '%s\n' hi", "/home/me")
-	if got := cmd.Args; !slices.Equal(got, []string{"wsl.exe", "-d", "Ubuntu", "-e", "sh", "-s"}) {
+	if got := cmd.Args; !slices.Equal(got, []string{"wsl.exe", "-d", "Ubuntu", "-e", "sh", "-c", wslLauncher}) {
 		t.Fatalf("args = %q", got)
 	}
 	in, err := io.ReadAll(cmd.Stdin)
 	if err != nil {
 		t.Fatal(err)
 	}
-	rest, ok := strings.CutPrefix(string(in), wslScriptInput)
-	if !ok {
-		t.Fatalf("the input does not start with the launcher: %q", in)
-	}
-	length, script, ok := strings.Cut(rest, "\n")
+	length, script, ok := strings.Cut(string(in), "\n")
 	if !ok || length != strconv.Itoa(len(script)) {
 		t.Fatalf("the length is %q for a script of %d bytes", length, len(script))
 	}
-	// Nothing of the script is on the command line, which wsl.exe joins
-	// without quoting.
+	// Nothing of the script is on the command line, which wsl.exe hands over
+	// as it is.
 	for _, s := range []string{"set -- '/home/me'", "printf '%s\n' hi"} {
 		if !strings.Contains(script, s) {
 			t.Errorf("the script has no %q: %q", s, script)
@@ -176,24 +171,35 @@ func TestWSLTerminalCommand(t *testing.T) {
 	}
 }
 
-// TestWSLScriptInput runs the launcher of a distribution's command in a
-// POSIX shell, which is what sh there reads from wsl.exe: the script by
-// its length, and the rest of the input left to it.
-func TestWSLScriptInput(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("a POSIX shell")
+// TestWSLLauncher runs the launcher of a distribution's command in the
+// shells of this machine, which read the script from its input and leave the
+// rest of it to the script. dash is sh on Ubuntu, and reads a script from its
+// input away from anything else that would, which is why the launcher comes
+// as an argument and the script goes to a file.
+func TestWSLLauncher(t *testing.T) {
+	var shells []string
+	for _, name := range []string{"sh", "dash", "bash"} {
+		if p, err := exec.LookPath(name); err == nil {
+			shells = append(shells, p)
+		}
 	}
-	script := "set -- 'a b'\n" + preamble + "printf '%s|' \"$@\"; cat"
-	in := wslScriptInput + strconv.Itoa(len(script)) + "\n" + script + "tail"
-	cmd := exec.Command("sh", "-s")
-	cmd.Stdin = strings.NewReader(in)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("%v: %s", err, out.String())
+	if len(shells) == 0 {
+		t.Skip("no POSIX shell")
 	}
-	if got := out.String(); got != "a b|tail" {
-		t.Fatalf("the script printed %q", got)
+	// The script and the input after it, which stays the script's own.
+	script := "set -- 'a b'\n" + preamble + "printf '%s|' \"$@\"; cat\n"
+	for _, sh := range shells {
+		in := strconv.Itoa(len(script)) + "\n" + script + "tail"
+		cmd := exec.Command(sh, "-c", wslLauncher)
+		cmd.Stdin = strings.NewReader(in)
+		var out bytes.Buffer
+		cmd.Stdout, cmd.Stderr = &out, &out
+		if err := cmd.Run(); err != nil {
+			t.Errorf("%s: %v: %s", sh, err, out.String())
+			continue
+		}
+		if got := out.String(); got != "a b|tail" {
+			t.Errorf("%s: the script printed %q, want %q", sh, got, "a b|tail")
+		}
 	}
 }

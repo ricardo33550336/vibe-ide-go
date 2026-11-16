@@ -155,6 +155,7 @@ func (f *Forward) pipe(conn net.Conn) {
 	args := append(options(sock), "-o", "ControlMaster=no", "-o", "LogLevel=ERROR",
 		"-W", net.JoinHostPort("localhost", strconv.Itoa(f.Port)))
 	cmd := exec.CommandContext(ctx, "ssh", append(args, hostArgs(c.Host)...)...)
+	hideWindow(cmd)
 	cmd.Stdout = conn
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

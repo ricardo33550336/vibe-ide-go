@@ -3,6 +3,8 @@
 ## Unreleased
 
 - A workspace opens without starting a shell of its own; the terminal button starts the first when you ask for one.
+- **Open Folder in WSL…** connects to distributions whose `sh` is dash, as Ubuntu's, which the script's input starved.
+- Commands of a WSL or SSH folder no longer flash a console window on Windows.
 
 ## 0.2.0
 

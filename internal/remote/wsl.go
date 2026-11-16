@@ -80,17 +80,27 @@ func wslTerminal(exe, distro, dir string) []string {
 	return append([]string{exe}, args...)
 }
 
-// wslScriptArgs are the arguments that run a script of ours in distro:
-// sh reads it from the terminal's input, as the launcher of a host of ssh
-// has it.
-func wslScriptArgs(distro string) []string {
-	return wslArgs(distro, "sh", "-s")
-}
+// wslLauncher is the command of a script of ours in a distribution, given
+// to sh as its -c argument: sh reads the length of the script, then the
+// script itself, from its input, runs it, and leaves the rest of the input
+// to it.
+//
+// The script goes to a file that sh runs, rather than through eval, so that
+// the launcher holds no quotes at all: wsl.exe hands the arguments of its
+// command line to the distribution, and what it makes of a quote in one is
+// not the same in every version. A shell that reads a script from its input
+// cannot be the launcher's sh either: dash, which is sh on Ubuntu, reads
+// all of it into a buffer of its own as it parses it, so that a launcher
+// read from the input finds the script gone, which is why the launcher comes
+// as an argument.
+const wslLauncher = `IFS= read -r n; f=$(mktemp); dd bs=1 count=$n of=$f 2>/dev/null; . $f; s=$?; rm -f $f; exit $s`
 
-// wslScriptInput is what the script of a command starts with, written to
-// the sh that reads it: the launcher, which reads the length of the
-// script and the script itself, and leaves the rest of the input to it.
-const wslScriptInput = `IFS= read -r n; eval "$(dd bs=1 count=$n 2>/dev/null)"; exit` + "\n"
+// wslScriptArgs are the arguments that run a script of ours in distro: sh
+// runs the launcher, which reads the script from its input, as the launcher
+// of a host of ssh does.
+func wslScriptArgs(distro string) []string {
+	return wslArgs(distro, "sh", "-c", wslLauncher)
+}
 
 // wslCheck checks that distro answers, with what wsl.exe says of it when
 // it does not.
