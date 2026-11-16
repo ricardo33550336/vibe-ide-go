@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - **File → Open Folder in WSL…** opens a folder of a WSL distribution, read and written by `wsl.exe` inside it.
 - Explorer, quick open, search, Git and blame of a WSL folder run in its distribution, not over the `\\wsl.localhost` share.
