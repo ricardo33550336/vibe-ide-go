@@ -104,6 +104,36 @@ func TestWorkspacePanelRestoresTerminals(t *testing.T) {
 	}
 }
 
+// A workspace that kept no terminal starts none, as the app opens many of
+// them at once, and the button starts the first when the user asks for it.
+func TestWorkspaceStartsNoTerminal(t *testing.T) {
+	t.Setenv("SHELL", "/bin/sh")
+	root := workspaceFixture(t)
+	s := settings.Default()
+	w := s.NewWindow()
+	w.Folder = root
+	a := newApp(&fakeHost{folder: root}, s, w)
+	a.terminalFirst, a.centerTerm = true, true
+	t.Cleanup(a.shutdown)
+	tt := ui.NewTester(a.view, 1200, 760)
+	hs := &harness{t: t, a: a, tt: tt, root: root}
+	hs.settle()
+	if ts := a.panelTerms(); len(ts) != 0 {
+		t.Fatalf("%d terminals on startup, want none", len(ts))
+	}
+	if a.centerShowsTerm() {
+		t.Fatal("the center shows a terminal the workspace has not")
+	}
+	a.togglePanel()
+	hs.settle()
+	if ts := a.panelTerms(); len(ts) != 1 || !a.centerShowsTerm() {
+		t.Fatalf("%d terminals after the button, center %v", len(ts), a.centerShowsTerm())
+	}
+	if a.panelTerm == nil || a.panelTerm.name != "Terminal 1" {
+		t.Fatalf("terminal %v, want the first of the workspace", a.panelTerm)
+	}
+}
+
 // The terminal in the center takes typing from the keyboard.
 func TestWorkspaceTerminalTakesKeys(t *testing.T) {
 	t.Setenv("SHELL", "/bin/sh")

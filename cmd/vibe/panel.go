@@ -405,8 +405,9 @@ func (a *app) ensurePanelTerm() *session {
 }
 
 // restoreTerminals starts the terminals a session kept, in their folders,
-// and shows the one it kept active. Without any, a workspace of the app
-// starts its first terminal.
+// and shows the one it kept active. A workspace with none starts none: the
+// user does, as a new terminal is cheap to open and starting every
+// workspace's would run a shell for each of them.
 func (a *app) restoreTerminals(saved []settings.Term, active int, hadHC bool) {
 	for i, t := range saved {
 		s := a.startTerminal(t.Dir)
@@ -421,10 +422,7 @@ func (a *app) restoreTerminals(saved []settings.Term, active int, hadHC bool) {
 	if a.panelTerm == nil {
 		a.ensurePanelTerm()
 	}
-	switch {
-	case a.terminalFirst && len(a.panelTerms()) == 0 && a.root != "":
-		a.newTerminalIn(a.workDir())
-	case !a.terminalFirst && !hadHC && len(a.panelTerms()) == 0 && a.window.TerminalOpen && a.window.PanelOpen && a.root != "":
+	if !a.terminalFirst && !hadHC && len(a.panelTerms()) == 0 && a.window.TerminalOpen && a.window.PanelOpen && a.root != "" {
 		a.newTerminal()
 	}
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A workspace opens without starting a shell of its own; the terminal button starts the first when you ask for one.
+
 ## 0.2.0
 
 - **File → Open Folder in WSL…** opens a folder of a WSL distribution, read and written by `wsl.exe` inside it.

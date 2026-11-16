@@ -1071,8 +1071,9 @@ func (m *vibe) openWindow(st *settings.Window) *desktop {
 	h := &desktop{m: m}
 	a := newApp(h, m.s, st)
 	// A workspace of the app the user runs shows its terminal first, and
-	// starts it now, so that the workspace panel lists the terminals of
-	// the workspaces it does not show too.
+	// starts the terminals it kept now, so that the workspace panel lists
+	// them for the workspaces it does not show too. Those without any run
+	// no shell until the user opens a terminal: the app opens many at once.
 	a.terminalFirst, a.centerTerm = true, true
 	if a.folder() != "" {
 		// The view's first frame would start it otherwise, a second

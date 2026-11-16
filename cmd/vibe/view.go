@@ -223,8 +223,9 @@ func (a *app) main(c *ui.Context) {
 	a.remoteBanner(c)
 	// Terminal first: the center shows the workspace's terminal until a
 	// file is opened, or the terminal button asks for the editors. A
-	// window with no folder keeps the welcome page.
-	if a.centerTerm && a.root != "" {
+	// workspace without a terminal shows its editors, and a window with no
+	// folder keeps the welcome page.
+	if a.centerShowsTerm() && a.root != "" {
 		a.centerTerminal(c)
 		return
 	}
@@ -255,6 +256,12 @@ func (a *app) main(c *ui.Context) {
 			})
 		}
 	})
+}
+
+// centerShowsTerm reports whether the center shows the workspace's
+// terminal: the workspace asks for it, and has one to show.
+func (a *app) centerShowsTerm() bool {
+	return a.centerTerm && a.ensurePanelTerm() != nil
 }
 
 // centerTerminal shows the terminal of the workspace in the center: the
@@ -437,7 +444,7 @@ func (a *app) titleBar(c *ui.Context) {
 			}
 		}
 		terminalButton := func() {
-			btn := a.iconButton(c, iconTerminal, a.withKey(locales.CmdViewTerminal(), "view.terminal"), a.window.PanelOpen || a.centerTerm)
+			btn := a.iconButton(c, iconTerminal, a.withKey(locales.CmdViewTerminal(), "view.terminal"), a.window.PanelOpen || a.centerShowsTerm())
 			if runtime.GOOS == "linux" {
 				btn.Padding(1, 0, 0, 0)
 			}
@@ -1841,16 +1848,23 @@ func (a *app) togglePanel() {
 	// button switches between the terminal and the editors, as vibe-ide's
 	// does, and the bottom panel stays away.
 	if a.terminalFirst {
-		a.centerTerm = !a.centerTerm
-		if a.centerTerm {
-			if a.ensurePanelTerm() == nil && a.root != "" {
-				a.newTerminalIn(a.workDir())
-				return
-			}
-			a.focusTerminal()
-		} else {
+		// A workspace without a terminal shows its editors, so the button
+		// starts the first of a workspace's terminals.
+		if a.centerShowsTerm() {
+			a.centerTerm = false
 			a.focusColumn()
+			return
 		}
+		if a.root == "" {
+			a.focusColumn()
+			return
+		}
+		a.centerTerm = true
+		if a.ensurePanelTerm() == nil {
+			a.newTerminalIn(a.workDir())
+			return
+		}
+		a.focusTerminal()
 		return
 	}
 	w := a.window

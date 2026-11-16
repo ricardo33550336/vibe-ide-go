@@ -602,11 +602,8 @@ func (a *app) openFolder(dir string) {
 	for _, v := range a.imageViewers() {
 		a.tree.Watch(v.path)
 	}
-	// Terminal first: a workspace with no terminal starts one, unless
-	// the session kept terminals, which start after the tabs.
-	if a.terminalFirst && len(a.panelTerms()) == 0 && len(a.window.Terminals) == 0 {
-		a.newTerminalIn(a.workDir())
-	}
+	// A workspace starts no terminal of its own: the user does, as the
+	// session's own start after the tabs.
 	a.settings.Changed()
 }
 
