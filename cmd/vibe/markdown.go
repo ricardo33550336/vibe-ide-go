@@ -384,9 +384,9 @@ func markdownPath(root, path, dest string) string {
 	}
 	// A URL's slash, which Windows does not take for a whole path.
 	if strings.HasPrefix(u.Path, "/") {
-		return filepath.Join(cmp.Or(root, "/"), filepath.FromSlash(u.Path))
+		return remote.Join(cmp.Or(root, "/"), u.Path)
 	}
-	return filepath.Join(filepath.Dir(path), filepath.FromSlash(u.Path))
+	return remote.Join(remote.Dir(path), u.Path)
 }
 
 // markdownRoot is the folder the links of the note at path are found

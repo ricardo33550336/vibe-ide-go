@@ -316,7 +316,7 @@ func copyInto(src, dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if info.IsDir() && (dir == src || strings.HasPrefix(dir, src+string(filepath.Separator))) {
+	if info.IsDir() && remote.In(dir, src) {
 		return "", errors.New(locales.ErrPasteIntoItself())
 	}
 	to := freeName(dir, filepath.Base(src), info.IsDir())
@@ -327,7 +327,7 @@ func copyInto(src, dir string) (string, error) {
 // "name copy 2" and on, before the extension of a file, as the Finder
 // names them.
 func freeName(dir, name string, isDir bool) string {
-	path := filepath.Join(dir, name)
+	path := remote.Join(dir, name)
 	if _, err := os.Lstat(path); err != nil {
 		return path
 	}

@@ -1059,7 +1059,7 @@ func (a *app) restoreExpanded(rels []string) {
 		return
 	}
 	for _, rel := range rels {
-		dir := filepath.Join(a.root, filepath.FromSlash(rel))
+		dir := remote.Join(a.root, rel)
 		// A remote folder is looked at as it is read.
 		if remote.Is(dir) {
 			a.files.Open.Add(dir)
@@ -1157,7 +1157,7 @@ func (a *app) restoreTabs() {
 			// Relative roots move with the workspace; absolute roots from older
 			// settings remain readable.
 			if ts.RepoRoot != "" && !remote.IsAbs(ts.RepoRoot) {
-				ts.RepoRoot = filepath.Join(a.root, filepath.FromSlash(ts.RepoRoot))
+				ts.RepoRoot = remote.Join(a.root, ts.RepoRoot)
 			}
 			n := len(col.tabs)
 			switch {

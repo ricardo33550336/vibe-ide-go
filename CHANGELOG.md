@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- A file made in a WSL folder stays open and listed, rather than showing as deleted from the disk.
+- The Explorer of a WSL folder lists a file made in one of its subfolders again.
+
 ## 0.2.1
 
 - A workspace opens without starting a shell of its own; the terminal button starts the first when you ask for one.

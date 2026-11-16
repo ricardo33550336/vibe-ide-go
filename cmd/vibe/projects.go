@@ -1458,7 +1458,7 @@ func inDir(dir, rel string) string {
 	if remote.Is(dir) {
 		return path.Join(dir, rel)
 	}
-	return filepath.Join(dir, filepath.FromSlash(rel))
+	return remote.Join(dir, rel)
 }
 
 // regularFiles are those of paths that are regular files, in order, at

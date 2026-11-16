@@ -164,7 +164,7 @@ func pluginPath(a *app, p string) (string, error) {
 	if host, root, ok := remote.Split(a.root); ok {
 		return remote.Path(host, path.Join(root, filepath.ToSlash(p))), nil
 	}
-	return filepath.Join(a.root, p), nil
+	return remote.Join(a.root, p), nil
 }
 
 // Call implements plugin.Host.

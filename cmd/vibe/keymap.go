@@ -368,7 +368,7 @@ func (a *app) runBinding(name string, args json.RawMessage, where keyPlace) {
 			home, _ := os.UserHomeDir()
 			path = filepath.Join(home, rest)
 		} else if !remote.IsAbs(path) && a.root != "" {
-			path = filepath.Join(a.root, path)
+			path = remote.Join(a.root, path)
 		}
 		a.openFile(path, true)
 	case "editor.action.indentUsingSpaces":

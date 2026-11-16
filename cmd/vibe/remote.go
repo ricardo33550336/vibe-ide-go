@@ -218,7 +218,7 @@ func (a *app) reconnected() {
 			a.tree.Load(a.root)
 		}
 		for _, dir := range a.window.Expanded {
-			if d := filepath.Join(a.root, filepath.FromSlash(dir)); !a.tree.Loaded(d) {
+			if d := remote.Join(a.root, dir); !a.tree.Loaded(d) {
 				a.tree.Load(d)
 			}
 		}

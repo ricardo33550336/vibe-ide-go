@@ -62,7 +62,10 @@ func Path(key, p string) string {
 // Split returns the key of the machine of a remote path and the path on
 // that machine, false for a path of this machine.
 func Split(p string) (key, rpath string, ok bool) {
-	s := filepath.ToSlash(p)
+	// Windows spells a path of a machine with backslashes once a filepath
+	// function of it joined one, and a machine's path is the host's: with
+	// slashes, on every system.
+	s := strings.ReplaceAll(p, `\`, "/")
 	for _, scheme := range []string{SSH, WSL} {
 		rest, ok := strings.CutPrefix(s, "/"+scheme+":")
 		if !ok {
@@ -75,6 +78,52 @@ func Split(p string) (key, rpath string, ok bool) {
 		return Key(scheme, name), path.Clean("/" + rp), true
 	}
 	return "", "", false
+}
+
+// Clean returns p as the editor spells it: a path of a machine with
+// slashes, which Windows makes of its own of the paths the filepath
+// package joins, and one of this machine as filepath.Clean has it.
+func Clean(p string) string {
+	if key, rpath, ok := Split(p); ok {
+		return Path(key, rpath)
+	}
+	return filepath.Clean(p)
+}
+
+// Join joins a folder and the name of a file in it, as Clean spells the
+// result: with slashes in a folder of a machine, whose paths are the
+// host's, and as the system has them in one of this machine.
+func Join(dir, name string) string {
+	if key, rpath, ok := Split(dir); ok {
+		return Path(key, path.Join(rpath, filepath.ToSlash(name)))
+	}
+	return filepath.Join(dir, name)
+}
+
+// Dir returns the folder of a file, as Clean spells it.
+func Dir(p string) string {
+	if key, rpath, ok := Split(p); ok {
+		return Path(key, path.Dir(rpath))
+	}
+	return filepath.Dir(p)
+}
+
+// Base returns the name of a file, without its folder.
+func Base(p string) string {
+	if _, rpath, ok := Split(p); ok {
+		return path.Base(rpath)
+	}
+	return filepath.Base(p)
+}
+
+// In reports whether path is dir, or a file in it, as Clean spells both.
+func In(path, dir string) bool {
+	d := strings.TrimSuffix(Clean(dir), "/")
+	if d == "" {
+		return false
+	}
+	p := Clean(path)
+	return p == d || strings.HasPrefix(p, d+"/") || strings.HasPrefix(p, d+`\`)
 }
 
 // Is reports whether p is the path of a remote file.

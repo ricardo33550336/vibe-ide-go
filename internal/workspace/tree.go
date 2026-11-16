@@ -322,7 +322,7 @@ func sortEntries(dir string, entries []vfs.Entry) ([]string, map[string]bool) {
 		if Hidden(e.Name) {
 			continue
 		}
-		p := filepath.Join(dir, e.Name)
+		p := remote.Join(dir, e.Name)
 		if e.Dir {
 			dirs[p] = true
 		}

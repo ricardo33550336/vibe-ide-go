@@ -203,3 +203,53 @@ func TestWSLLauncher(t *testing.T) {
 		}
 	}
 }
+
+// TestRemotePathsKeepSlashes keeps the paths of a machine the host's, as
+// Windows would spell them with backslashes once a filepath function of it
+// joined one: the tree and the open documents compare paths as strings, and
+// a path of a machine spelled two ways names two files.
+func TestRemotePathsKeepSlashes(t *testing.T) {
+	key := Key(WSL, "Ubuntu")
+	root := Path(key, "/home/pepe/proj")
+	if root != "/wsl:Ubuntu/home/pepe/proj" {
+		t.Fatalf("Path = %q", root)
+	}
+	tests := []struct{ got, want string }{
+		{Join(root, "a.go"), "/wsl:Ubuntu/home/pepe/proj/a.go"},
+		{Join(root, "a/../b.go"), "/wsl:Ubuntu/home/pepe/proj/b.go"},
+		// A path of a machine that Windows spelled with backslashes is
+		// joined back into the host's spelling.
+		{Join(`\wsl:Ubuntu\home\pepe\proj`, "a.go"), "/wsl:Ubuntu/home/pepe/proj/a.go"},
+		{Dir("/wsl:Ubuntu/home/pepe/proj/a.go"), root},
+		{Dir(root), "/wsl:Ubuntu/home/pepe"},
+		{Dir("/wsl:Ubuntu/home"), "/wsl:Ubuntu"},
+		{Base("/wsl:Ubuntu/home/pepe/proj/a.go"), "a.go"},
+		{Clean(`\wsl:Ubuntu\home\pepe\proj\`), root},
+		{Clean(root + "/./x/../y.go"), root + "/y.go"},
+	}
+	for _, tt := range tests {
+		if tt.got != tt.want {
+			t.Errorf("got %q, want %q", tt.got, tt.want)
+		}
+	}
+	for _, tt := range []struct {
+		path, dir string
+		in        bool
+	}{
+		{root + "/a.go", root, true},
+		{root, root, true},
+		{root + "x/a.go", root, false},
+		{Path(Key(WSL, "Debian"), "/home/pepe/proj/a.go"), root, false},
+	} {
+		if got := In(tt.path, tt.dir); got != tt.in {
+			t.Errorf("In(%q, %q) = %v, want %v", tt.path, tt.dir, got, tt.in)
+		}
+	}
+	// A path of this machine is the filepath package's, as it was.
+	if got := Join("/tmp/x", "a.go"); got != filepath.Join("/tmp/x", "a.go") {
+		t.Errorf("Join of this machine = %q", got)
+	}
+	if got := In(filepath.Join("/tmp/x", "a.go"), "/tmp/x"); !got {
+		t.Error("In of this machine is false")
+	}
+}

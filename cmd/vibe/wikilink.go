@@ -155,7 +155,7 @@ func wikiLinkFileIn(root, path, target string, arrived func(), disk bool) string
 	onDisk := func(dirs ...string) string {
 		for _, name := range names {
 			for _, dir := range dirs {
-				if p := filepath.Join(dir, filepath.FromSlash(name)); dir != "" && isFile(p) {
+				if p := remote.Join(dir, name); dir != "" && isFile(p) {
 					return p
 				}
 			}
@@ -173,7 +173,7 @@ func wikiLinkFileIn(root, path, target string, arrived func(), disk bool) string
 	if rel, err := filepath.Rel(root, filepath.Dir(path)); err == nil && filepath.IsLocal(rel) {
 		dir, inRoot = strings.ToLower(filepath.ToSlash(rel)), true
 	}
-	found := func(f string) string { return filepath.Join(root, filepath.FromSlash(f)) }
+	found := func(f string) string { return remote.Join(root, f) }
 	for _, name := range names {
 		want := strings.ToLower(pathpkg.Clean(filepath.ToSlash(name)))
 		if inRoot {
@@ -385,7 +385,7 @@ func readWikiFiles(root string) *wikiFileSet {
 		if !local {
 			continue
 		}
-		if info, err := os.Stat(filepath.Join(root, filepath.FromSlash(f))); err == nil {
+		if info, err := os.Stat(remote.Join(root, f)); err == nil {
 			set.mod[i] = info.ModTime().UnixNano()
 		}
 	}
@@ -521,5 +521,5 @@ func wikiLinkNew(path, target string) string {
 	if filepath.IsAbs(rel) || !filepath.IsLocal(rel) {
 		return ""
 	}
-	return filepath.Join(filepath.Dir(path), rel)
+	return remote.Join(remote.Dir(path), rel)
 }

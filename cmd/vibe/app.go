@@ -569,7 +569,7 @@ func (a *app) start() {
 
 // openFolder makes dir the workspace.
 func (a *app) openFolder(dir string) {
-	dir = filepath.Clean(wslPath(dir))
+	dir = remote.Clean(wslPath(dir))
 	if a.tree != nil {
 		a.tree.Close()
 	}
