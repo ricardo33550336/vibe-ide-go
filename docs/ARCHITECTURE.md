@@ -241,9 +241,12 @@ stats the files open, every 3 seconds, at one round trip, reporting only what di
 
 ## Remote folders
 
-**`internal/remote`.** A remote file has a path of its own, `/ssh:host/path`, which `filepath` takes as any other, so
-documents, the tree, Git and the settings keep it as they keep a local one. The connection to a host is an ssh master
-(`ControlMaster`) that every command goes through, with `BatchMode` so that it never asks for a password. A command is a
+**`internal/remote`.** A remote file has a path of its own, `/ssh:host/path` over SSH, or `/wsl:distro/path` in a
+distribution of WSL, which `filepath` takes as any other, so documents, the tree, Git and the settings keep it as they
+keep a local one. The connection to a host is an ssh master (`ControlMaster`) that every command goes through, with
+`BatchMode` so that it never asks for a password; a distribution has no process to hold, and `wsl.exe` runs each
+command there (`wsl.go`), the script reaching `sh` as its input rather than through the command line, which wsl.exe
+joins without quoting. A command is a
 small POSIX shell script: `sh` on the host reads its length and then the script from what ssh sends, so that nothing of
 it goes through the login shell, which may be fish, and the rest of the input is the script's, as a file's text. It
 reads a folder with a loop of `[ -d ]`, stats with GNU's or BSD's `stat`, as the host has, reads files with `head -c`

@@ -2308,6 +2308,16 @@ func (msgs Messages) CmdFileOpenFolderWindow() string {
 	return Catalog.Format(msgs.locale, "cmdFileOpenFolderWindow", nil)
 }
 
+// CmdFileOpenWSLFolder says "Open Folder in WSL…"
+// in the language the app shows.
+func CmdFileOpenWSLFolder() string { return In(i18n.Locale()).CmdFileOpenWSLFolder() }
+
+// CmdFileOpenWSLFolder says "Open Folder in WSL…"
+// in the language of msgs.
+func (msgs Messages) CmdFileOpenWSLFolder() string {
+	return Catalog.Format(msgs.locale, "cmdFileOpenWSLFolder", nil)
+}
+
 // CmdFileOpenRecent says "Open Recent…"
 // in the language the app shows.
 func CmdFileOpenRecent() string { return In(i18n.Locale()).CmdFileOpenRecent() }
@@ -8548,6 +8558,26 @@ func (msgs Messages) PickNoHostsTip() string {
 	return Catalog.Format(msgs.locale, "pickNoHostsTip", nil)
 }
 
+// PickNoWSLDistros says "No distribution of WSL"
+// in the language the app shows.
+func PickNoWSLDistros() string { return In(i18n.Locale()).PickNoWSLDistros() }
+
+// PickNoWSLDistros says "No distribution of WSL"
+// in the language of msgs.
+func (msgs Messages) PickNoWSLDistros() string {
+	return Catalog.Format(msgs.locale, "pickNoWSLDistros", nil)
+}
+
+// PickNoWSLDistrosTip says "Install one with wsl --install, then open its folders here."
+// in the language the app shows.
+func PickNoWSLDistrosTip() string { return In(i18n.Locale()).PickNoWSLDistrosTip() }
+
+// PickNoWSLDistrosTip says "Install one with wsl --install, then open its folders here."
+// in the language of msgs.
+func (msgs Messages) PickNoWSLDistrosTip() string {
+	return Catalog.Format(msgs.locale, "pickNoWSLDistrosTip", nil)
+}
+
 // PickNotFolder says "{path} is not a folder."
 // in the language the app shows.
 func PickNotFolder(path string) string { return In(i18n.Locale()).PickNotFolder(path) }
@@ -8608,6 +8638,16 @@ func (msgs Messages) PickSignsIn() string {
 	return Catalog.Format(msgs.locale, "pickSignsIn", nil)
 }
 
+// PickStarting says "Starting {distro}"
+// in the language the app shows.
+func PickStarting(distro string) string { return In(i18n.Locale()).PickStarting(distro) }
+
+// PickStarting says "Starting {distro}"
+// in the language of msgs.
+func (msgs Messages) PickStarting(distro string) string {
+	return Catalog.Format(msgs.locale, "pickStarting", map[string]any{"distro": distro})
+}
+
 // PickSshConfig says "SSH Config"
 // in the language the app shows.
 func PickSshConfig() string { return In(i18n.Locale()).PickSshConfig() }
@@ -8646,6 +8686,56 @@ func PickWithKeys() string { return In(i18n.Locale()).PickWithKeys() }
 // in the language of msgs.
 func (msgs Messages) PickWithKeys() string {
 	return Catalog.Format(msgs.locale, "pickWithKeys", nil)
+}
+
+// PickWSLTitle says "Open Folder in WSL"
+// in the language the app shows.
+func PickWSLTitle() string { return In(i18n.Locale()).PickWSLTitle() }
+
+// PickWSLTitle says "Open Folder in WSL"
+// in the language of msgs.
+func (msgs Messages) PickWSLTitle() string {
+	return Catalog.Format(msgs.locale, "pickWSLTitle", nil)
+}
+
+// PickWSLPlaceholder says "Choose a distribution"
+// in the language the app shows.
+func PickWSLPlaceholder() string { return In(i18n.Locale()).PickWSLPlaceholder() }
+
+// PickWSLPlaceholder says "Choose a distribution"
+// in the language of msgs.
+func (msgs Messages) PickWSLPlaceholder() string {
+	return Catalog.Format(msgs.locale, "pickWSLPlaceholder", nil)
+}
+
+// PickWSLDistros says "Distributions"
+// in the language the app shows.
+func PickWSLDistros() string { return In(i18n.Locale()).PickWSLDistros() }
+
+// PickWSLDistros says "Distributions"
+// in the language of msgs.
+func (msgs Messages) PickWSLDistros() string {
+	return Catalog.Format(msgs.locale, "pickWSLDistros", nil)
+}
+
+// PickWSLOpen says "open"
+// in the language the app shows.
+func PickWSLOpen() string { return In(i18n.Locale()).PickWSLOpen() }
+
+// PickWSLOpen says "open"
+// in the language of msgs.
+func (msgs Messages) PickWSLOpen() string {
+	return Catalog.Format(msgs.locale, "pickWSLOpen", nil)
+}
+
+// PickWSLTip says "reads the folder in its distribution, where it lives"
+// in the language the app shows.
+func PickWSLTip() string { return In(i18n.Locale()).PickWSLTip() }
+
+// PickWSLTip says "reads the folder in its distribution, where it lives"
+// in the language of msgs.
+func (msgs Messages) PickWSLTip() string {
+	return Catalog.Format(msgs.locale, "pickWSLTip", nil)
 }
 
 // PortEnter says "Enter a port, from 1 to 65535."

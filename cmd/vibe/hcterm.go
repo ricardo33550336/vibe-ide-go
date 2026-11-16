@@ -226,7 +226,9 @@ func hcHerdrLabel(root string) string {
 // hcBackend reports whether new terminals run in herdr-core: the
 // settings ask for it, and hc is there.
 func (a *app) hcBackend() bool {
-	return a.settings.TerminalBackend == "hc" && hcPath() != ""
+	// A terminal of a distribution of WSL runs in the distribution, which
+	// herdr-core has no machine of.
+	return a.settings.TerminalBackend == "hc" && hcPath() != "" && remote.SchemeOf(a.folder()) != remote.WSL
 }
 
 // hcStart starts a shell in dir in a terminal of herdr-core, on machine
@@ -552,7 +554,7 @@ func (a *app) hcTerms(addrs []string) map[string]string {
 			switch {
 			case err == nil && state == "live":
 				if isRemote && cwd != "" {
-					cwd = remote.Path(c.Host, cwd)
+					cwd = c.Path(cwd)
 				}
 				looks <- look{addr, cmp.Or(cwd, a.root), true}
 			case err != nil && !hcGone(err):

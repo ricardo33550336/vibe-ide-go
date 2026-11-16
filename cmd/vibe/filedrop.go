@@ -108,7 +108,9 @@ func (a *app) dropFiles(paths []string, col *column, at int) {
 		at = col.active + 1
 	}
 	for i, p := range files {
-		a.openFileIn(col, at, p, i == len(files)-1)
+		// A file of a distribution of WSL opens there, read by wsl.exe,
+		// rather than through the share of Windows.
+		a.openFileIn(col, at, wslPath(p), i == len(files)-1)
 		at = col.active + 1
 	}
 }
@@ -155,7 +157,7 @@ func (a *app) pastePaths(s *session, paths []string) {
 		s.term.Paste(quotePaths(shown))
 		return
 	}
-	if slices.ContainsFunc(paths, func(p string) bool { return remote.HostOf(p) != c.Host }) {
+	if slices.ContainsFunc(paths, func(p string) bool { return remote.HostOf(p) != c.Key() }) {
 		a.uploadPaths(s, paths, nil)
 		return
 	}

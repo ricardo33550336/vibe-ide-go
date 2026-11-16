@@ -227,7 +227,7 @@ func (a *app) askDownload(src string) {
 // machine in the background, and offers to show it once it is there.
 func (a *app) download(src, dir string) {
 	if !remote.IsConnected(src) {
-		a.fail("%s", locales.FailDownloadNotConnected(remote.HostOf(src)))
+		a.fail("%s", locales.FailDownloadNotConnected(remote.NameOf(src)))
 		return
 	}
 	x := a.startTransfer(transferLabel([]string{src}, dir))

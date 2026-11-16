@@ -729,7 +729,7 @@ func (t *Tree) startNotify() {
 	t.mu.Lock()
 	t.notify = cmd
 	t.mu.Unlock()
-	host := c.Host
+	host := c.Key()
 	go func() {
 		sc := bufio.NewScanner(out)
 		sc.Buffer(make([]byte, 64<<10), 1<<20)

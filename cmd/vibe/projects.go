@@ -730,7 +730,7 @@ func (f *frame) railTab(c *ui.Context, a *app, h *desktop, i int, label string) 
 	// tip says of it.
 	var conn string
 	var connCol ui.Color
-	if host := remote.HostOf(dir); host != "" {
+	if host := remote.NameOf(dir); host != "" {
 		l := link{}
 		if h.a.conn != nil {
 			l = h.a.link

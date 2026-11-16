@@ -9,7 +9,6 @@ import (
 
 	"github.com/egoist/mygo/plugins/terminal"
 
-	"vibe/internal/remote"
 	"vibe/locales"
 )
 
@@ -112,7 +111,7 @@ func (a *app) restartTerminal(s *session) {
 	}
 	dir := s.dir
 	if d := s.term.Dir(); path.IsAbs(d) {
-		dir = remote.Path(c.Host, d)
+		dir = c.Path(d)
 	}
 	old := s.term
 	t, err := a.spawnTerminal(s, dir)

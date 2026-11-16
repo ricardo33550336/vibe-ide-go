@@ -46,7 +46,7 @@ func stampOf(info fs.FileInfo) *fileStamp {
 // and connects it; a folder of this machine lets go of the one followed.
 func (a *app) attachRemote(dir string) {
 	host := remote.HostOf(dir)
-	if a.conn != nil && a.conn.Host == host {
+	if a.conn != nil && a.conn.Key() == host {
 		return
 	}
 	a.detachRemote()
@@ -282,7 +282,7 @@ func (a *app) markOffline() {
 		switch host := remote.HostOf(d.path); {
 		case host == "":
 			d.offline = false
-		case a.conn != nil && host == a.conn.Host:
+		case a.conn != nil && host == a.conn.Key():
 			d.offline = a.link.kind != linkOnline
 		default:
 			d.offline = !remote.IsConnected(d.path)
@@ -440,7 +440,7 @@ func (a *app) saveRemote(d *document, done func(), failed func(error)) {
 // waiting, which it answers.
 func (a *app) writeRemote(d *document) {
 	if !remote.IsConnected(d.path) {
-		a.answerSaves(d, errors.New(locales.ErrNotConnectedTo(remote.HostOf(d.path))))
+		a.answerSaves(d, errors.New(locales.ErrNotConnectedTo(remote.NameOf(d.path))))
 		return
 	}
 	d.sync = syncSaving
@@ -510,8 +510,34 @@ func (a *app) askSavePath(name string, done func(path string)) {
 	}, cancel: func() { done("") }}
 }
 
+// remoteLabel is how the machine of a remote path shows in a title or a
+// message: "SSH: host", or "WSL: Ubuntu" for a distribution.
+func remoteLabel(p string) string {
+	scheme, name := remote.SplitKey(remote.HostOf(p))
+	if name == "" {
+		return ""
+	}
+	return remoteLabelOf(scheme, name)
+}
+
+// remoteLabelOf is remoteLabel for the machine of a scheme and a name.
+func remoteLabelOf(scheme, name string) string {
+	if scheme == remote.WSL {
+		return "WSL: " + name
+	}
+	return "SSH: " + name
+}
+
+// connLabel is remoteLabel of a connection.
+func connLabel(c *remote.Conn) string {
+	if c == nil {
+		return ""
+	}
+	return remoteLabelOf(c.Scheme, c.Host)
+}
+
 // hostPath is how a path is copied or shown as text: a remote one as its
-// host has it.
+// host has it, which in a distribution of WSL is the Linux path.
 func hostPath(p string) string {
 	if _, rp, ok := remote.Split(p); ok {
 		return rp
@@ -645,7 +671,7 @@ func (a *app) remoteStatus(c *ui.Context, text func(string) ui.Element) {
 	}
 	p := a.pal
 	host := a.conn.Host
-	label, tip, tint := "SSH: "+host, locales.RemoteConnectedTo(host), p.accent
+	label, tip, tint := connLabel(a.conn), locales.RemoteConnectedTo(host), p.accent
 	switch {
 	case a.link.kind == linkOnline:
 		if info := a.conn.Info(); info.OS != "" {
@@ -658,7 +684,7 @@ func (a *app) remoteStatus(c *ui.Context, text func(string) ui.Element) {
 	default:
 		tip, tint = locales.RemoteDisconnectedTip(host), p.danger
 	}
-	b := ui.ButtonBase(c.Key("status:ssh")).Height(statusBarH-6).Padding(0, 7).Gap(5).Radius(4).
+	b := ui.ButtonBase(c.Key("status:remote")).Height(statusBarH-6).Padding(0, 7).Gap(5).Radius(4).
 		AlignItems(ui.Center).Label(tip).Tooltip(tip)
 	b.Background(tint.Alpha(0.16))
 	if b.Hovered() {
@@ -690,8 +716,12 @@ func (a *app) remoteStatus(c *ui.Context, text func(string) ui.Element) {
 		if m.Item(locales.CmdRemoteOpenFolder()).Chosen() {
 			a.post(a.openRemoteFolder)
 		}
-		if m.Item(locales.CmdRemoteConnect()).Chosen() {
-			a.post(a.openRemotePicker)
+		connect, connectLabel := a.openRemotePicker, locales.CmdRemoteConnect()
+		if a.conn.Scheme == remote.WSL {
+			connect, connectLabel = a.openWSLPicker, locales.CmdFileOpenWSLFolder()
+		}
+		if m.Item(connectLabel).Chosen() {
+			a.post(connect)
 		}
 		m.Separator()
 		if m.Item(locales.RemoteCloseFolder()).Chosen() {
@@ -732,7 +762,7 @@ func (a *app) loadingView(c *ui.Context, d *editor) {
 		ui.Icon(c, glyph).FontSize(20).TextColor(p.muted)
 		msg := locales.RemoteCouldNotRead(d.name(), d.loadErr.Error())
 		if errors.Is(d.loadErr, remote.ErrOffline) {
-			msg = locales.RemoteShowsOnce(d.name(), remote.HostOf(d.path))
+			msg = locales.RemoteShowsOnce(d.name(), remote.NameOf(d.path))
 		}
 		if errors.Is(d.loadErr, errBinary) {
 			msg = locales.FailBinary(d.name())
@@ -769,7 +799,7 @@ func (a *app) shutdown() {
 // document is saved by hand, which asks again.
 func (a *app) saveConflict(d *document) {
 	d.sync = syncConflict
-	host := remote.HostOf(d.path)
+	host := remote.NameOf(d.path)
 	a.ask(&confirm{
 		title:   locales.RemoteChangedOn(d.name(), host),
 		message: locales.RemoteChangedDetail(host),

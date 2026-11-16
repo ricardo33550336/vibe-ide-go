@@ -501,8 +501,8 @@ func (a *app) commandCenter(c *ui.Context) {
 		}
 		if a.root != "" {
 			folder = filepath.Base(a.root)
-			if host := remote.HostOf(a.root); host != "" {
-				folder = filepath.Base(hostPath(a.root)) + " [SSH: " + host + "]"
+			if label := remoteLabel(a.root); label != "" {
+				folder = filepath.Base(hostPath(a.root)) + " [" + label + "]"
 			}
 		}
 		var nameW float32
@@ -1168,7 +1168,7 @@ func (a *app) statusFit(c *ui.Context, width float32) statusVisibility {
 		used += measure(busy, true)
 	}
 	if a.conn != nil {
-		used += measure("SSH: "+a.conn.Host, true) + 2
+		used += measure(connLabel(a.conn), true) + 2
 		if l := portsLabel(a.conn.Forwards()); l != "" {
 			used += measure(l, true)
 		}
@@ -1644,6 +1644,9 @@ func (a *app) welcome(c *ui.Context) {
 						a.welcomeAction(c, iconFolderOpen, locales.CmdFileOpenFolder(), a.keyHint("file.openFolder"), a.chooseFolder)
 						if remoteSupported {
 							a.welcomeAction(c, iconServer, locales.CmdRemoteConnect(), a.keyHint("remote.connect"), a.openRemotePicker)
+						}
+						if remote.WSLSupported() {
+							a.welcomeAction(c, iconTerminal, locales.CmdFileOpenWSLFolder(), "", a.openWSLPicker)
 						}
 					} else {
 						a.welcomeAction(c, iconFileSearch, locales.CmdGoQuickOpen(), a.keyHint("go.quickOpen"), func() { a.openQuick("") })

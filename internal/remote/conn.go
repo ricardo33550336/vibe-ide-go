@@ -53,9 +53,14 @@ type Info struct {
 	Git, Rg, Inotify bool
 }
 
-// Conn is the connection to a host: an ssh master process whose socket
-// every command goes through, so that only the first signs in.
+// Conn is the connection to a machine: an ssh master process whose socket
+// every command goes through, so that only the first signs in, or, in a
+// distribution of WSL, the wsl.exe that each command runs.
 type Conn struct {
+	// Scheme is how the machine is reached: ssh, or wsl.
+	Scheme string
+	// Host is the name of the machine: the host of ssh config, or the
+	// distribution of WSL.
 	Host string
 
 	mu    sync.Mutex
@@ -63,6 +68,9 @@ type Conn struct {
 	err   error // why the connection failed or was lost
 	info  Info
 	dir   string // the folder of the master's socket
+	sock  string // the socket of the master, while it is there
+	// exe is the wsl.exe of a distribution, as it connected.
+	exe string
 	// master is the ssh process that holds the connection, nil while
 	// none does; ctx is canceled as it goes, which ends the commands that
 	// went through it.
@@ -85,26 +93,34 @@ var (
 	conns   = map[string]*Conn{}
 )
 
-// For returns the connection to host, which starts offline.
-func For(host string) *Conn {
+// For returns the connection to the machine of a key, which starts
+// offline.
+func For(key string) *Conn {
 	connsMu.Lock()
 	defer connsMu.Unlock()
-	c := conns[host]
+	c := conns[key]
 	if c == nil {
-		c = &Conn{Host: host, subs: map[int]func(){}}
-		conns[host] = c
+		scheme, name := SplitKey(key)
+		c = &Conn{Scheme: scheme, Host: name, subs: map[int]func(){}}
+		conns[key] = c
 	}
 	return c
 }
 
+// Key is the key of the connection's machine, which names it in a path.
+func (c *Conn) Key() string { return Key(c.Scheme, c.Host) }
+
+// Path returns the path the editor knows a path of the machine by.
+func (c *Conn) Path(rp string) string { return Path(c.Key(), rp) }
+
 // Lookup returns the connection of a remote path, and the path on its
 // host; false for a path of this machine.
 func Lookup(p string) (*Conn, string, bool) {
-	host, rpath, ok := Split(p)
+	key, rpath, ok := Split(p)
 	if !ok {
 		return nil, "", false
 	}
-	return For(host), rpath, true
+	return For(key), rpath, true
 }
 
 // Shutdown ends every connection, as the app quits.
@@ -253,64 +269,95 @@ func (c *Conn) dial(ctx context.Context) {
 		c.mu.Lock()
 		if c.ctx == ctx {
 			c.state, c.err, c.master = Offline, err, nil
+			c.sock, c.exe = "", ""
 			c.cancel()
 		}
 		c.mu.Unlock()
 		c.notify()
 	}
-	sock, err := c.socket()
-	if err != nil {
-		fail(err)
-		return
-	}
-	os.Remove(sock)
-	args := append(options(sock), "-o", "ControlMaster=yes", "-o", "ControlPersist=no", "-N")
-	cmd := exec.Command("ssh", append(args, hostArgs(c.Host)...)...)
-	stderr := &syncBuffer{}
-	cmd.Stderr = stderr
-	if err := cmd.Start(); err != nil {
-		fail(fmt.Errorf("could not run ssh: %w", err))
-		return
-	}
-	exited := make(chan struct{})
-	go func() {
-		cmd.Wait()
-		close(exited)
-	}()
-	// The master listens on its socket once it has signed in.
-	deadline := time.After(45 * time.Second)
-	for ready := false; !ready; {
-		select {
-		case <-exited:
-			fail(sshError(stderr.String(), errors.New("ssh exited")))
+	var (
+		master *exec.Cmd
+		exited chan struct{}
+		stderr *syncBuffer
+	)
+	if c.Scheme == WSL {
+		// A distribution holds no process: wsl.exe starts one for each
+		// command, and the check that it is there is all there is to
+		// connect.
+		exe, err := wslExe()
+		if err != nil {
+			fail(err)
 			return
-		case <-ctx.Done():
-			cmd.Process.Kill()
-			<-exited
-			return
-		case <-deadline:
-			cmd.Process.Kill()
-			<-exited
-			fail(errors.New("timed out connecting"))
-			return
-		case <-time.After(40 * time.Millisecond):
-			_, err := os.Stat(sock)
-			ready = err == nil
 		}
-	}
-	c.mu.Lock()
-	if c.ctx != ctx {
+		if err := wslCheck(ctx, exe, c.Host); err != nil {
+			fail(err)
+			return
+		}
+		c.mu.Lock()
+		if c.ctx != ctx {
+			c.mu.Unlock()
+			return
+		}
+		c.exe = exe
 		c.mu.Unlock()
-		cmd.Process.Kill()
-		<-exited
-		return
+	} else {
+		sock, err := c.socket()
+		if err != nil {
+			fail(err)
+			return
+		}
+		os.Remove(sock)
+		args := append(options(sock), "-o", "ControlMaster=yes", "-o", "ControlPersist=no", "-N")
+		cmd := exec.Command("ssh", append(args, hostArgs(c.Host)...)...)
+		stderr = &syncBuffer{}
+		cmd.Stderr = stderr
+		if err := cmd.Start(); err != nil {
+			fail(fmt.Errorf("could not run ssh: %w", err))
+			return
+		}
+		master = cmd
+		exited = make(chan struct{})
+		go func() {
+			cmd.Wait()
+			close(exited)
+		}()
+		// The master listens on its socket once it has signed in.
+		deadline := time.After(45 * time.Second)
+		for ready := false; !ready; {
+			select {
+			case <-exited:
+				fail(sshError(stderr.String(), errors.New("ssh exited")))
+				return
+			case <-ctx.Done():
+				cmd.Process.Kill()
+				<-exited
+				return
+			case <-deadline:
+				cmd.Process.Kill()
+				<-exited
+				fail(errors.New("timed out connecting"))
+				return
+			case <-time.After(40 * time.Millisecond):
+				_, err := os.Stat(sock)
+				ready = err == nil
+			}
+		}
+		c.mu.Lock()
+		if c.ctx != ctx {
+			c.mu.Unlock()
+			cmd.Process.Kill()
+			<-exited
+			return
+		}
+		c.master, c.exited, c.sock = cmd, exited, sock
+		c.mu.Unlock()
 	}
-	c.master, c.exited = cmd, exited
-	c.mu.Unlock()
-	info, err := c.probe(ctx, sock)
+	info, err := c.probe(ctx)
 	if err != nil {
-		cmd.Process.Kill()
-		<-exited
+		if master != nil {
+			master.Process.Kill()
+			<-exited
+		}
 		fail(err)
 		return
 	}
@@ -322,12 +369,15 @@ func (c *Conn) dial(ctx context.Context) {
 	c.state, c.info = Connected, info
 	c.mu.Unlock()
 	c.notify()
+	if master == nil {
+		return
+	}
 	// Lost, unless Disconnect ends it.
 	go func() {
 		<-exited
 		c.mu.Lock()
-		if c.master == cmd {
-			c.master, c.exited = nil, nil
+		if c.master == master {
+			c.master, c.exited, c.sock = nil, nil, ""
 			c.state = Offline
 			if !c.leaving {
 				c.err = sshError(stderr.String(), ErrLost)
@@ -340,7 +390,7 @@ func (c *Conn) dial(ctx context.Context) {
 }
 
 // probe finds what the host is and has.
-func (c *Conn) probe(ctx context.Context, sock string) (Info, error) {
+func (c *Conn) probe(ctx context.Context) (Info, error) {
 	const script = `printf '%s\n' "$HOME"
 uname -s
 if stat -c %s / >/dev/null 2>&1; then echo gnu; stat -c %.9Y / 2>/dev/null; fi
@@ -348,7 +398,7 @@ for t in git rg inotifywait; do
   if command -v $t >/dev/null 2>&1; then echo have:$t; fi
 done
 `
-	out, err := c.run(ctx, sock, nil, script)
+	out, err := c.run(ctx, "", nil, script)
 	if err != nil {
 		return Info{}, err
 	}
@@ -400,8 +450,9 @@ func (c *Conn) Disconnect() {
 	}
 	c.mu.Lock()
 	if c.master == master {
-		c.master, c.exited = nil, nil
+		c.master, c.exited, c.sock = nil, nil, ""
 	}
+	c.exe = ""
 	c.leaving = false
 	c.mu.Unlock()
 	if was != Offline {
@@ -409,19 +460,19 @@ func (c *Conn) Disconnect() {
 	}
 }
 
-// live returns the socket and the context of the connection, or
-// ErrOffline.
+// live returns the socket of the connection, "" for a distribution of
+// WSL, and its context, or ErrOffline.
 func (c *Conn) live() (string, context.Context, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.state != Connected || c.dir == "" {
+	if c.state != Connected {
 		return "", nil, ErrOffline
 	}
-	return filepath.Join(c.dir, "s"), c.ctx, nil
+	return c.sock, c.ctx, nil
 }
 
-// launcher is the command ssh has the host's shell run: sh reads the
-// length of the script, then the script, from what ssh sends it, and
+// launcher is the command the host's shell runs: sh reads the length of
+// the script, then the script, from what ssh or wsl.exe sends it, and
 // leaves the rest to the script. Nothing of the script goes through the
 // login shell, which may not be a POSIX one.
 const launcher = `sh -c 'IFS= read -r n; eval "$(dd bs=1 count=$n 2>/dev/null)"'`
@@ -454,14 +505,35 @@ func (c *Conn) command(ctx context.Context, sock string, stdin io.Reader, script
 	b.WriteString(preamble)
 	b.WriteString(script)
 	full := b.String()
-	head := strings.NewReader(strconv.Itoa(len(full)) + "\n" + full)
-	cmd := exec.CommandContext(ctx, "ssh", c.clientArgs(sock, false, launcher)...)
+	var cmd *exec.Cmd
+	var head io.Reader
+	if c.Scheme == WSL {
+		// sh reads the launcher and the script from its input, so that
+		// nothing of the script goes through wsl.exe's command line, which
+		// joins its arguments without quoting them.
+		cmd = exec.CommandContext(ctx, c.wslProgram(), wslScriptArgs(c.Host)...)
+		head = io.MultiReader(strings.NewReader(wslScriptInput+strconv.Itoa(len(full))+"\n"), strings.NewReader(full))
+	} else {
+		cmd = exec.CommandContext(ctx, "ssh", c.clientArgs(sock, false, launcher)...)
+		head = strings.NewReader(strconv.Itoa(len(full)) + "\n" + full)
+	}
 	if stdin != nil {
 		cmd.Stdin = io.MultiReader(head, stdin)
 	} else {
 		cmd.Stdin = head
 	}
 	return cmd
+}
+
+// wslProgram is the wsl.exe of a distribution, wsl.exe itself before the
+// connection found one.
+func (c *Conn) wslProgram() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.exe == "" {
+		return "wsl.exe"
+	}
+	return c.exe
 }
 
 // Run runs script as Command does, and returns what it wrote.
@@ -487,6 +559,18 @@ func (c *Conn) run(ctx context.Context, sock string, stdin io.Reader, script str
 // that the connection's end stopped is ErrOffline.
 func (c *Conn) failure(err error, stderr string) error {
 	if !c.Connected() || errors.Is(err, context.Canceled) {
+		return ErrOffline
+	}
+	if c.Scheme == WSL && wslGone(stderr) {
+		// The distribution is not there to ask any more: as lost as a
+		// host whose ssh ended.
+		c.mu.Lock()
+		c.state, c.err, c.exe = Offline, wslError(stderr, ErrLost), ""
+		if c.cancel != nil {
+			c.cancel()
+		}
+		c.mu.Unlock()
+		c.notify()
 		return ErrOffline
 	}
 	return &Error{Stderr: strings.TrimSpace(stderr), Err: err}
@@ -516,10 +600,14 @@ func (e *Error) Is(target error) bool {
 	return target == fs.ErrNotExist && strings.Contains(e.Stderr, "No such file or directory")
 }
 
-// TerminalCommand returns the ssh command of a terminal in dir on the
-// host, which signs in itself, in the terminal, when the connection is
-// not there.
+// TerminalCommand returns the command of a terminal in dir on the host:
+// ssh's, which signs in itself, in the terminal, when the connection is
+// not there, or wsl.exe's, which starts a shell of the distribution
+// there.
 func (c *Conn) TerminalCommand(dir string) []string {
+	if c.Scheme == WSL {
+		return wslTerminal(c.wslProgram(), c.Host, dir)
+	}
 	sock, err := c.socket()
 	if err != nil {
 		return nil

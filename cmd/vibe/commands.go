@@ -33,6 +33,7 @@ func (a *app) commandsIn(t locales.Messages) []command {
 		{"file.new", t.CmdFileNew(), "CmdOrCtrl+N", a.newFile},
 		{"file.newWindow", t.CmdFileNewWindow(), "Shift+CmdOrCtrl+N", func() { a.host.newBlankWindow() }},
 		{"file.openFolder", t.CmdFileOpenFolder(), "CmdOrCtrl+O", a.chooseFolder},
+		{"file.openWSLFolder", t.CmdFileOpenWSLFolder(), "", a.openWSLPicker},
 		{"file.openFolderWindow", t.CmdFileOpenFolderWindow(), "Alt+CmdOrCtrl+O", a.chooseFolderWindow},
 		// ⌃R, which the view takes itself, so that a terminal keeps it.
 		{"file.openRecent", t.CmdFileOpenRecent(), "", a.openRecentPicker},
@@ -327,6 +328,7 @@ func (a *app) clearRecent() {
 // tabs, a window with a folder keeps it, and dir opens in a tab of its
 // own.
 func (a *app) switchFolder(dir string) {
+	dir = wslPath(dir)
 	switch {
 	case a.host.showFolder(filepath.Clean(dir)):
 	case a.settings.ProjectTabs && a.folder() != "":
@@ -559,8 +561,11 @@ func (a *app) menu(cli bool, run func(id string, win *mygo.Window)) *mygo.Menu {
 	forget := item("file.clearRecent")
 	forget.Disabled = len(a.settings.Recent) == 0
 	recent = append(recent, more, mygo.Separator(), forget)
+	// A folder in a distribution of WSL is only there on Windows.
+	openWSL := item("file.openWSLFolder")
+	openWSL.Hidden = !remote.WSLSupported()
 	file := []*mygo.MenuItem{
-		item("file.new"), item("file.openFolder"),
+		item("file.new"), item("file.openFolder"), openWSL,
 		{Label: locales.MenuOpenRecent(), Submenu: recent},
 	}
 	file = append(file, mygo.Separator(),

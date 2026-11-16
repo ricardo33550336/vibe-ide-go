@@ -367,7 +367,7 @@ func (a *app) runBinding(name string, args json.RawMessage, where keyPlace) {
 		if rest, ok := strings.CutPrefix(path, "~/"); ok {
 			home, _ := os.UserHomeDir()
 			path = filepath.Join(home, rest)
-		} else if !filepath.IsAbs(path) && a.root != "" {
+		} else if !remote.IsAbs(path) && a.root != "" {
 			path = filepath.Join(a.root, path)
 		}
 		a.openFile(path, true)

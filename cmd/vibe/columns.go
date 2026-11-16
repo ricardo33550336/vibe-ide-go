@@ -1156,7 +1156,7 @@ func (a *app) restoreTabs() {
 		for k, ts := range cs.Tabs {
 			// Relative roots move with the workspace; absolute roots from older
 			// settings remain readable.
-			if ts.RepoRoot != "" && !filepath.IsAbs(ts.RepoRoot) {
+			if ts.RepoRoot != "" && !remote.IsAbs(ts.RepoRoot) {
 				ts.RepoRoot = filepath.Join(a.root, filepath.FromSlash(ts.RepoRoot))
 			}
 			n := len(col.tabs)

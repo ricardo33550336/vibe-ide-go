@@ -33,7 +33,9 @@ type Forward struct {
 func (f *Forward) URL() string { return fmt.Sprintf("http://localhost:%d", f.Local) }
 
 // Forward forwards port of the host, unless it is already, to the same
-// port of this machine when it is free, or else to another.
+// port of this machine when it is free, or else to another. A port of a
+// distribution of WSL forwards itself: WSL2 carries it to this machine as
+// it listens.
 func (c *Conn) Forward(port int) (*Forward, error) {
 	if port < 1 || port > 65535 {
 		return nil, errors.New("a port is a number from 1 to 65535")
@@ -46,6 +48,14 @@ func (c *Conn) Forward(port int) (*Forward, error) {
 		}
 	}
 	c.mu.Unlock()
+	if c.Scheme == WSL {
+		f := &Forward{Port: port, Local: port, c: c}
+		c.mu.Lock()
+		c.forwards = append(c.forwards, f)
+		c.mu.Unlock()
+		c.notify()
+		return f, nil
+	}
 	ln, err := net.Listen("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	if err != nil {
 		if ln, err = net.Listen("tcp", "127.0.0.1:0"); err != nil {
@@ -91,7 +101,9 @@ func (f *Forward) Close() {
 		c.forwards = slices.Delete(c.forwards, i, i+1)
 	}
 	c.mu.Unlock()
-	f.ln.Close()
+	if f.ln != nil {
+		f.ln.Close()
+	}
 	f.mu.Lock()
 	for conn := range f.open {
 		conn.Close()

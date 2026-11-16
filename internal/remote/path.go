@@ -1,11 +1,15 @@
-// Package remote reaches folders on other machines over SSH, with the
-// system's ssh command and nothing installed on the other side: one
-// connection to each host, which every command shares, and the files read
-// and written by small shell scripts run through it.
+// Package remote reaches folders on other machines, with nothing
+// installed on the other side: over SSH, with the system's ssh command,
+// one connection to each host which every command shares, and, on
+// Windows, in a distribution of the Windows Subsystem for Linux, with
+// wsl.exe. The files are read and written by small shell scripts run
+// there, so that a folder of a distribution is read where it lives,
+// rather than through the slow share Windows mounts it on.
 //
-// The editor knows a remote file by a path of its own, /ssh:host/path,
-// which the path functions of Go take as any other: the folder of a file,
-// its name and paths relative to a folder come out as they should.
+// The editor knows a remote file by a path of its own, /ssh:host/path or
+// /wsl:distro/path, which the path functions of Go take as any other: the
+// folder of a file, its name and paths relative to a folder come out as
+// they should.
 package remote
 
 import (
@@ -17,30 +21,60 @@ import (
 	"strings"
 )
 
-// prefix starts the paths of remote files.
-const prefix = "/ssh:"
+// The schemes of remote machines: the hosts of ssh, and the distributions
+// of the Windows Subsystem for Linux.
+const (
+	SSH = "ssh"
+	WSL = "wsl"
+)
 
-// Path returns the path the editor knows the file at p on host by.
-func Path(host, p string) string {
-	p = path.Clean("/" + p)
-	if p == "/" {
-		return prefix + host
+// Key names the machine of a scheme: the key of a host of ssh is its name
+// alone, so that the folders kept of one still name it, and that of a
+// distribution is its name after "wsl:".
+func Key(scheme, name string) string {
+	if scheme == SSH || scheme == "" {
+		return name
 	}
-	return prefix + host + p
+	return scheme + ":" + name
 }
 
-// Split returns the host of a remote path and the path on the host,
-// false for a path of this machine.
-func Split(p string) (host, rpath string, ok bool) {
-	rest, ok := strings.CutPrefix(filepath.ToSlash(p), prefix)
-	if !ok || rest == "" {
-		return "", "", false
+// SplitKey parts a key into its scheme and the name of the machine, which
+// is ssh's for a key without a scheme.
+func SplitKey(key string) (scheme, name string) {
+	if rest, ok := strings.CutPrefix(key, WSL+":"); ok && rest != "" && !strings.ContainsAny(rest, "/\\") {
+		return WSL, rest
 	}
-	host, rpath, _ = strings.Cut(rest, "/")
-	if host == "" {
-		return "", "", false
+	return SSH, key
+}
+
+// Path returns the path the editor knows the file at p on the machine of
+// key by.
+func Path(key, p string) string {
+	scheme, name := SplitKey(key)
+	root := "/" + scheme + ":" + name
+	p = path.Clean("/" + p)
+	if p == "/" {
+		return root
 	}
-	return host, path.Clean("/" + rpath), true
+	return root + p
+}
+
+// Split returns the key of the machine of a remote path and the path on
+// that machine, false for a path of this machine.
+func Split(p string) (key, rpath string, ok bool) {
+	s := filepath.ToSlash(p)
+	for _, scheme := range []string{SSH, WSL} {
+		rest, ok := strings.CutPrefix(s, "/"+scheme+":")
+		if !ok {
+			continue
+		}
+		name, rp, _ := strings.Cut(rest, "/")
+		if name == "" || scheme == WSL && strings.Contains(name, ":") {
+			return "", "", false
+		}
+		return Key(scheme, name), path.Clean("/" + rp), true
+	}
+	return "", "", false
 }
 
 // Is reports whether p is the path of a remote file.
@@ -49,47 +83,78 @@ func Is(p string) bool {
 	return ok
 }
 
-// HostOf returns the host of a remote path, "" for a path of this
-// machine.
+// IsAbs reports whether p names a file from a root, as filepath.IsAbs
+// says of a path of this machine, or as a path of a machine does, which
+// Windows does not know to be absolute.
+func IsAbs(p string) bool { return Is(p) || filepath.IsAbs(p) }
+
+// HostOf returns the key of the machine of a remote path, "" for a path
+// of this machine.
 func HostOf(p string) string {
-	host, _, _ := Split(p)
-	return host
+	key, _, _ := Split(p)
+	return key
+}
+
+// NameOf returns how the machine of a remote path shows: the name of the
+// host, or of the distribution. It is "" for a path of this machine.
+func NameOf(p string) string {
+	_, name := SplitKey(HostOf(p))
+	return name
+}
+
+// SchemeOf returns the scheme of the machine of a remote path, "" for a
+// path of this machine.
+func SchemeOf(p string) string {
+	scheme, _ := SplitKey(HostOf(p))
+	if HostOf(p) == "" {
+		return ""
+	}
+	return scheme
 }
 
 // On returns p, a path a program on the machine of ref wrote, as the
-// editor knows it: as ref's host has it when ref is remote.
+// editor knows it: as ref's machine has it when ref is remote.
 func On(ref, p string) string {
-	if host, _, ok := Split(ref); ok && strings.HasPrefix(p, "/") && !Is(p) {
-		return Path(host, p)
+	if key, _, ok := Split(ref); ok && strings.HasPrefix(p, "/") && !Is(p) {
+		return Path(key, p)
 	}
 	return p
 }
 
 // Display is how a remote path shows, as ssh's scp-like syntax spells it:
-// host:/path. A path of this machine shows as it is.
+// host:/path for a host of ssh, and the path itself in a distribution,
+// which is a path of that Linux as it is.
 func Display(p string) string {
-	host, rpath, ok := Split(p)
+	key, rpath, ok := Split(p)
 	if !ok {
 		return p
 	}
-	return host + ":" + rpath
+	scheme, name := SplitKey(key)
+	if scheme == WSL {
+		return rpath
+	}
+	return name + ":" + rpath
 }
 
 // URL returns the ssh:// URL of a remote path, "" for a path of this
-// machine.
+// machine and for one of a distribution, which ssh cannot reach.
 func URL(p string) string {
-	host, rpath, ok := Split(p)
+	key, rpath, ok := Split(p)
 	if !ok {
 		return ""
 	}
-	return "ssh://" + host + rpath
+	scheme, name := SplitKey(key)
+	if scheme != SSH {
+		return ""
+	}
+	return "ssh://" + name + rpath
 }
 
 // ParseURL returns the path of the folder an ssh://[user@]host[:port]/path
 // URL names.
 func ParseURL(s string) (string, error) {
 	u, err := url.Parse(s)
-	if err != nil || u.Scheme != "ssh" || u.Host == "" || u.RawQuery != "" || u.Fragment != "" {
+	if err != nil || u.Scheme != SSH || u.Host == "" || u.RawQuery != "" || u.Fragment != "" {
 		return "", errors.New("use ssh://[user@]host[:port]/path")
 	}
 	if _, ok := u.User.Password(); ok {
@@ -102,7 +167,7 @@ func ParseURL(s string) (string, error) {
 	if err := CheckHost(host); err != nil {
 		return "", err
 	}
-	return Path(host, u.Path), nil
+	return Path(Key(SSH, host), u.Path), nil
 }
 
 // CheckHost returns why host cannot name a machine to connect to: a name

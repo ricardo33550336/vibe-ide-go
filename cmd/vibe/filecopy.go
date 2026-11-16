@@ -278,7 +278,7 @@ func toHost(c *remote.Conn, srcs []string, rdir string, p *remote.Progress) ([]s
 func hostPaths(c *remote.Conn, rps []string) []string {
 	out := make([]string, len(rps))
 	for i, rp := range rps {
-		out[i] = remote.Path(c.Host, rp)
+		out[i] = c.Path(rp)
 	}
 	return out
 }

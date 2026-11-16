@@ -558,7 +558,7 @@ func argPaths(args []string, wd string) []string {
 		if !filepath.IsAbs(arg) {
 			arg = filepath.Join(wd, arg)
 		}
-		paths = append(paths, arg)
+		paths = append(paths, wslPath(arg))
 	}
 	return paths
 }
@@ -615,7 +615,7 @@ func (m *vibe) launch(paths []string) {
 		m.openBlankWindow()
 	}
 	for _, p := range files {
-		m.openFile(p)
+		m.openFile(wslPath(p))
 	}
 }
 
@@ -642,7 +642,7 @@ func (m *vibe) open(paths []string) {
 		m.openFolder(dir, true)
 	}
 	for _, p := range files {
-		m.openFile(p)
+		m.openFile(wslPath(p))
 	}
 }
 
@@ -672,6 +672,9 @@ func splitPaths(paths []string) (folders, files []string) {
 // it in a new window. reuse lets a window that shows nothing take it
 // instead, as the one an app opens with.
 func (m *vibe) openFolder(dir string, reuse bool) {
+	// A folder of a distribution of WSL, which Explorer passes as a path of
+	// its share, is the distribution's own.
+	dir = wslPath(dir)
 	if w := m.showing(dir); w != nil {
 		w.show()
 		return

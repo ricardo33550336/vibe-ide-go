@@ -256,6 +256,9 @@ func (a *app) noFolder(c *ui.Context) {
 		if remoteSupported && ui.Button(c.Key("no-folder-remote"), locales.CmdRemoteConnect()).FillWidth().Clicked() {
 			a.openRemotePicker()
 		}
+		if remote.WSLSupported() && ui.Button(c.Key("no-folder-wsl"), locales.CmdFileOpenWSLFolder()).FillWidth().Clicked() {
+			a.openWSLPicker()
+		}
 	})
 }
 
@@ -868,7 +871,7 @@ func (a *app) trashLabel() string {
 func (a *app) trash(path string) {
 	if remote.Is(path) {
 		a.present(&confirm{title: locales.DeleteQuestion(filepath.Base(path)),
-			message: locales.DeleteRemoteDetail(remote.HostOf(path)),
+			message: locales.DeleteRemoteDetail(remote.NameOf(path)),
 			ok:      locales.ButtonDelete(), danger: true, run: func() {
 				go func() {
 					err := vfs.RemoveAll(path)

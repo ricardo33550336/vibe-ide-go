@@ -665,6 +665,32 @@ Each folder gets its own window.
 - Turning Project Tabs on gathers the open windows into the one in front, and turning it off parts the projects into a
   window each again.
 
+## WSL
+
+**File → Open Folder in WSL…**, the welcome page or the command palette opens a folder inside a distribution of the
+Windows Subsystem for Linux, on Windows. The editor reads and writes it with `wsl.exe` in the distribution itself, so
+the files stay on its own file system and none of them go through `\\wsl.localhost`, whose share is a slow crossing
+between two systems.
+
+- The box lists the distributions `wsl.exe` has, the default first, then lists the folders of the one chosen as the
+  remote box does: type a path (`~` for the home folder), ↑↓ to choose, ↵ or Tab goes into a folder, and ↵ on the first
+  row opens the one typed.
+- A folder opened from `\\wsl.localhost\Distro\…`, as Explorer or the command line passes one, opens in its
+  distribution instead, and the paths of this machine stay as they are: a distribution reads `C:` at `/mnt/c`, but a
+  file of Windows changes through another system there, which is not what the editor does.
+- Explorer, quick open, search and replace in files, Source Control, blame, the gutter marks and diffs work as in a
+  local folder, running `git`, `rg` (or `grep`) and `find` in the distribution, and language servers start there too:
+  what they need is installed in the distribution, not on Windows.
+- Terminals of the folder are shells of the distribution, started in the folder. A link a program prints to a file
+  opens in the editor, and one to a port opens in the browser: WSL2 carries a port of the distribution to this
+  machine by itself.
+- **Copy Path** of a file of the folder copies its path as the distribution has it, `/home/me/proj/main.go`, which is
+  what a shell there takes.
+- Changes in the distribution show as they would locally, read every 3 seconds, or as `inotifywait` reports them where
+  the distribution has the `inotify-tools` package.
+- The status bar shows `WSL: distro`, with the same menu as a host of SSH: reconnect, disconnect and the port of a
+  server. A window's title names the distribution too.
+
 ## Remote SSH
 
 **File → Remote SSH → Connect to Host…**, the welcome page or the command palette opens a folder on another machine

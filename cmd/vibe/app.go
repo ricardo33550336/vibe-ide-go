@@ -569,7 +569,7 @@ func (a *app) start() {
 
 // openFolder makes dir the workspace.
 func (a *app) openFolder(dir string) {
-	dir = filepath.Clean(dir)
+	dir = filepath.Clean(wslPath(dir))
 	if a.tree != nil {
 		a.tree.Close()
 	}
@@ -1020,8 +1020,8 @@ func (a *app) windowTitle() string {
 	}
 	if a.root != "" {
 		parts = append(parts, filepath.Base(a.root))
-		if host := remote.HostOf(a.root); host != "" {
-			parts[len(parts)-1] = filepath.Base(hostPath(a.root)) + " [SSH: " + host + "]"
+		if label := remoteLabel(a.root); label != "" {
+			parts[len(parts)-1] = filepath.Base(hostPath(a.root)) + " [" + label + "]"
 		}
 	}
 	if len(parts) == 0 {

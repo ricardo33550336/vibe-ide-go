@@ -50,7 +50,7 @@ func (a *app) requestSave(d *document, w saveWaiter) {
 		err := errNotSaved
 		switch {
 		case errors.Is(d.loadErr, remote.ErrOffline):
-			err = errors.New(locales.ErrNotConnectedTo(remote.HostOf(d.path)))
+			err = errors.New(locales.ErrNotConnectedTo(remote.NameOf(d.path)))
 		case d.sync == syncLoadFailed:
 			err = d.loadErr
 		}
