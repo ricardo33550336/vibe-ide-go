@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Reveal in File Explorer** shows a file or folder of a WSL folder, through the share Windows mounts it on.
+- A path a program prints in a terminal of a WSL or SSH folder opens in the editor on Ctrl+click.
+
 ## 0.2.2
 
 - A file made in a WSL folder stays open and listed, rather than showing as deleted from the disk.

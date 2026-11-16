@@ -685,7 +685,8 @@ between two systems.
   opens in the editor, and one to a port opens in the browser: WSL2 carries a port of the distribution to this
   machine by itself.
 - **Copy Path** of a file of the folder copies its path as the distribution has it, `/home/me/proj/main.go`, which is
-  what a shell there takes.
+  what a shell there takes, and **Reveal in File Explorer** shows it through `\\wsl.localhost\\<distro>`, the share
+  Windows mounts the distribution on, which Explorer opens.
 - Changes in the distribution show as they would locally, read every 3 seconds, or as `inotifywait` reports them where
   the distribution has the `inotify-tools` package.
 - The status bar shows `WSL: distro`, with the same menu as a host of SSH: reconnect, disconnect and the port of a

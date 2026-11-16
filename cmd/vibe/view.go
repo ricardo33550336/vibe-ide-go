@@ -1468,7 +1468,7 @@ func (a *app) statusBar(c *ui.Context) {
 		if a.root != "" && visible.folder {
 			if len(a.repositories.contexts) > 1 {
 				a.repositoryButton(c, true)
-			} else if a.conn != nil {
+			} else if !canReveal(a.root) {
 				item("folder", filepath.Base(hostPath(a.root)), "", iconFolder, nil)
 			} else {
 				item("folder", filepath.Base(a.root), revealFolderLabel(shortenHome(a.root)), iconFolder, func() { a.host.reveal(a.root) })

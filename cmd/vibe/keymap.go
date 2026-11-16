@@ -545,7 +545,7 @@ func (a *app) copyActivePath(rel bool) {
 
 // revealActive shows the file of the tab shown in the file manager.
 func (a *app) revealActive() {
-	if path := a.activeFile(); path != "" && !remote.Is(path) {
+	if path := a.activeFile(); canReveal(path) {
 		a.host.reveal(path)
 	}
 }

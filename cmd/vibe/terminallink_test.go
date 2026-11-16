@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/plugins/terminal"
@@ -166,5 +167,23 @@ func TestTerminalLinkLeavesOtherLinks(t *testing.T) {
 	}
 	if len(hs.a.docs) != 0 {
 		t.Fatal("opened a document for a rejected link")
+	}
+}
+
+// TestRemoteTerminalLinkOpensFile has a path a program prints in a terminal
+// of a host open in the editor, as its host printed it: relative to the
+// folder the program runs in, or whole.
+func TestRemoteTerminalLinkOpensFile(t *testing.T) {
+	hs, _, _ := remoteHarness(t)
+	s := &session{dir: hs.root}
+	_, rroot, _ := remote.Split(hs.root)
+	for _, link := range []string{"main.go", rroot + "/src/a.txt"} {
+		if !hs.a.terminalLink(s, link) {
+			t.Fatalf("%q was not handled", link)
+		}
+		want := hs.root + "/" + strings.TrimPrefix(link, rroot+"/")
+		if d := hs.a.activeEditor(); d == nil || d.path != want {
+			t.Fatalf("%q opened %v, want %q", link, d, want)
+		}
 	}
 }

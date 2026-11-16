@@ -253,3 +253,27 @@ func TestRemotePathsKeepSlashes(t *testing.T) {
 		t.Error("In of this machine is false")
 	}
 }
+
+// TestWSLWindowsPath keeps how Windows reaches a folder of a distribution:
+// through the share it mounts it on, which Explorer opens.
+func TestWSLWindowsPath(t *testing.T) {
+	tests := []struct {
+		in, want string
+		ok       bool
+	}{
+		{"/wsl:Ubuntu/home/pepe/proj", `\\wsl.localhost\Ubuntu\home\pepe\proj`, true},
+		{"/wsl:Ubuntu/home/pepe/proj/main.go", `\\wsl.localhost\Ubuntu\home\pepe\proj\main.go`, true},
+		{"/wsl:Ubuntu", `\\wsl.localhost\Ubuntu`, true},
+		{"/wsl:My Distro/srv", `\\wsl.localhost\My Distro\srv`, true},
+		// A host of ssh has no share of this machine, nor has one of them.
+		{"/ssh:box/srv/app", "", false},
+		{"/tmp/x", "", false},
+		{"", "", false},
+	}
+	for _, tt := range tests {
+		got, ok := WSLWindowsPath(tt.in)
+		if got != tt.want || ok != tt.ok {
+			t.Errorf("WSLWindowsPath(%q) = %q %v, want %q %v", tt.in, got, ok, tt.want, tt.ok)
+		}
+	}
+}

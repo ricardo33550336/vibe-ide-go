@@ -210,9 +210,13 @@ func (h *desktop) notify(title, body string, onClick func()) {
 		n.Show()
 	}()
 }
+
+// reveal shows a file in the file manager: one of this machine, or one of a
+// distribution of WSL, which Windows shows through the share it mounts it
+// on. A host of ssh has no share of this machine to be shown by.
 func (h *desktop) reveal(path string) {
-	if !remote.Is(path) {
-		mygo.Shell.ShowItemInFolder(path)
+	if p := revealPath(path); p != "" {
+		mygo.Shell.ShowItemInFolder(p)
 	}
 }
 func (h *desktop) copyFiles(paths []string) error {

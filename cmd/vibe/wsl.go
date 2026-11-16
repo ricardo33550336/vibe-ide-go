@@ -30,3 +30,19 @@ func wslPaths(paths []string) []string {
 	}
 	return out
 }
+
+// revealPath is how the file manager shows a path: one of this machine as
+// it is, and one of a distribution of WSL through the share Windows mounts
+// it on, which Explorer opens. A path of a host of ssh has none: "".
+func revealPath(p string) string {
+	if unc, ok := remote.WSLWindowsPath(p); ok {
+		return unc
+	}
+	if remote.Is(p) {
+		return ""
+	}
+	return p
+}
+
+// canReveal reports whether the file manager can show p.
+func canReveal(p string) bool { return p != "" && revealPath(p) != "" }

@@ -284,6 +284,27 @@ func isDriveLetter(c byte) bool {
 	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
 }
 
+// WSLWindowsPath returns the path Windows reaches a path of a distribution
+// by: the share it mounts the distribution on, \\wsl.localhost\<distro>\...,
+// which Explorer shows and a dialog of Windows opens. ok is false for a path
+// of this machine, and for one of a host of ssh, which Windows has no share
+// of.
+func WSLWindowsPath(p string) (string, bool) {
+	key, rpath, ok := Split(p)
+	if !ok {
+		return "", false
+	}
+	scheme, name := SplitKey(key)
+	if scheme != WSL {
+		return "", false
+	}
+	unc := `\\wsl.localhost\` + name
+	if rpath != "/" {
+		unc += strings.ReplaceAll(rpath, "/", `\`)
+	}
+	return unc, true
+}
+
 // wslShare parts a path under \\wsl.localhost\<distro> or \\wsl$\<distro>
 // into the distribution and the path inside it.
 func wslShare(p string) (distro, rpath string, ok bool) {

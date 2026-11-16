@@ -6,7 +6,6 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
-	"vibe/internal/remote"
 	"vibe/locales"
 )
 
@@ -350,7 +349,7 @@ func (a *app) tabMenu(m *ui.Menu, col *column, t *colTab, closing **colTab) {
 	if m.Item(locales.ScmRevealInExplorer()).Disabled(path == "" || a.root == "").Chosen() {
 		a.post(func() { a.showExplorer(); a.revealInTree(path) })
 	}
-	if m.Item(revealLabel()).Disabled(path == "" || remote.Is(path)).Chosen() {
+	if m.Item(revealLabel()).Disabled(!canReveal(path)).Chosen() {
 		a.host.reveal(path)
 	}
 	if m.Item(locales.CopyPath()).Disabled(path == "").Chosen() {

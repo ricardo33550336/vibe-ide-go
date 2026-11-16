@@ -922,7 +922,7 @@ func (f *frame) railTab(c *ui.Context, a *app, h *desktop, i int, label string) 
 		}
 	})
 	b.ContextMenu(func(mn *ui.Menu) {
-		if mn.Item(revealLabel()).Disabled(dir == "" || remote.Is(dir)).Chosen() {
+		if mn.Item(revealLabel()).Disabled(!canReveal(dir)).Chosen() {
 			a.host.reveal(dir)
 		}
 		if mn.Item(locales.CopyPath()).Disabled(dir == "").Chosen() {
@@ -2221,7 +2221,7 @@ func (f *frame) workspaceGroup(c *ui.Context, a *app, h *desktop, i int) {
 					h.a.post(func() { f.move(h, before) })
 				}
 				m.Separator()
-				if m.Item(revealLabel()).Disabled(dir == "").Chosen() {
+				if m.Item(revealLabel()).Disabled(!canReveal(dir)).Chosen() {
 					h.a.post(func() { f.activate(h); h.a.host.reveal(dir) })
 				}
 				if m.Item(locales.CopyPath()).Disabled(dir == "").Chosen() {

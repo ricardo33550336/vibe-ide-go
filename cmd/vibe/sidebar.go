@@ -374,7 +374,7 @@ func (a *app) fileTree(c *ui.Context) {
 				action = func() { a.askNewEntry(dir, true) }
 			}
 			m.Separator()
-			if a.conn == nil && m.Item(revealLabel()).Chosen() {
+			if canReveal(path) && m.Item(revealLabel()).Chosen() {
 				action = func() { a.host.reveal(path) }
 			}
 			if !isDir && m.Item(locales.OpenInTerminal()).Chosen() {
@@ -551,7 +551,7 @@ func (a *app) fileTree(c *ui.Context) {
 			action = func() { a.askNewEntry(a.root, true) }
 		}
 		m.Separator()
-		if a.conn == nil && m.Item(revealLabel()).Chosen() {
+		if canReveal(a.root) && m.Item(revealLabel()).Chosen() {
 			action = func() { a.host.reveal(a.root) }
 		}
 		if m.Item(locales.OpenInTerminal()).Chosen() {
