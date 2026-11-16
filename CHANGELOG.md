@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.3
 
 - **Reveal in File Explorer** shows a file or folder of a WSL folder, through the share Windows mounts it on.
 - A path a program prints in a terminal of a WSL or SSH folder opens in the editor on Ctrl+click.
