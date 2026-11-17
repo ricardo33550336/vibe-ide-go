@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.4
 
 - **Source Control** lists only the repositories with changes, so a folder of many does not bury them.
 - A **Search** button beside the Explorer and Source Control switches the sidebar to search.
