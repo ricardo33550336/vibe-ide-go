@@ -8,6 +8,7 @@ import (
 	"html"
 	"io"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -56,58 +57,137 @@ type mathKey struct {
 // mathTimeout is how long MathJax may take with a formula.
 const mathTimeout = 5 * time.Second
 
-// mathjax is the JavaScript runtime that runs MathJax, started as the
-// first formula is drawn, one formula at a time.
-var mathjax struct {
-	sync.Mutex
+// mathEngine is one MathJax runtime that draws formulas, its own so
+// several can draw at once.
+type mathEngine struct {
 	js     *jsEngine
 	render moejs.Value
-	err    error
 }
 
-func mathStart() error {
+// mathPool draws formulas through several engines at once rather than
+// one after another: a cold parse of a note of many unique formulas
+// typesets them in parallel. Engines start as needed, up to a cap, and
+// stay for the app to reuse.
+var mathPool struct {
+	once sync.Once
+	sem  chan struct{}
+	mu   sync.Mutex
+	idle []*mathEngine
+	err  error
+}
+
+// mathPoolSize is the most formulas drawn at once.
+func mathPoolSize() int { return max(1, min(runtime.GOMAXPROCS(0), 8)) }
+
+func mathStartEngine() (*mathEngine, error) {
 	zr, err := gzip.NewReader(bytes.NewReader(mathJS))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	script, err := io.ReadAll(zr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	js, err := newJSEngine("mathjax.js", string(script), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fn, err := js.eval("mathjax-render.js", "VibeMath.render")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !fn.IsObject() || !fn.AsObject().IsCallable() {
-		return errors.New("mathjax: no render")
+		return nil, errors.New("mathjax: no render")
 	}
-	mathjax.js, mathjax.render = js, fn
-	return nil
+	return &mathEngine{js: js, render: fn}, nil
+}
+
+// mathPoolGet borrows an idle engine, or starts one if none is free.
+// The semaphore holds the pool to its size, so an engine is never shared
+// by two draws at once.
+func mathPoolGet() (*mathEngine, error) {
+	mathPool.mu.Lock()
+	if mathPool.err != nil {
+		err := mathPool.err
+		mathPool.mu.Unlock()
+		return nil, err
+	}
+	if n := len(mathPool.idle); n > 0 {
+		e := mathPool.idle[n-1]
+		mathPool.idle[n-1] = nil
+		mathPool.idle = mathPool.idle[:n-1]
+		mathPool.mu.Unlock()
+		return e, nil
+	}
+	mathPool.mu.Unlock()
+	e, err := mathStartEngine()
+	if err != nil {
+		mathPool.mu.Lock()
+		mathPool.err = err
+		mathPool.mu.Unlock()
+		return nil, err
+	}
+	return e, nil
+}
+
+func mathPoolPut(e *mathEngine) {
+	mathPool.mu.Lock()
+	mathPool.idle = append(mathPool.idle, e)
+	mathPool.mu.Unlock()
 }
 
 // mathSVG draws tex as SVG, in display style or within text.
 func mathSVG(tex string, display bool) (string, error) {
-	mathjax.Lock()
-	defer mathjax.Unlock()
-	if mathjax.js == nil && mathjax.err == nil {
-		mathjax.err = mathStart()
+	mathPool.once.Do(func() { mathPool.sem = make(chan struct{}, mathPoolSize()) })
+	mathPool.sem <- struct{}{}
+	defer func() { <-mathPool.sem }()
+	e, err := mathPoolGet()
+	if err != nil {
+		return "", err
 	}
-	if mathjax.err != nil {
-		return "", mathjax.err
-	}
-	out, err := mathjax.js.callString(mathjax.render, mathTimeout, tex, display)
+	defer mathPoolPut(e)
+	out, err := e.js.callString(e.render, mathTimeout, tex, display)
 	if err != nil {
 		if timedOut(err) {
 			return "", errors.New(locales.ErrMathTimeout())
 		}
-		msg, _ := mathjax.js.thrown(err)
+		msg, _ := e.js.thrown(err)
 		return "", errors.New(msg)
 	}
 	return out, nil
+}
+
+// mathRender is a formula a parse left to draw: its key and the
+// placeholder its blocks hold, filled once it is drawn.
+type mathRender struct {
+	key mathKey
+	f   *mathFormula
+}
+
+// renderMathPending draws the formulas a parse collected, several at
+// once through the pool, filling the placeholders its blocks hold. Each
+// placeholder is its own, so the draws do not share memory; current,
+// when set, skips the drawing if the parse has gone stale.
+func renderMathPending(pending []mathRender, current func() bool) {
+	if len(pending) == 0 || current != nil && !current() {
+		return
+	}
+	ch := make(chan mathRender)
+	var wg sync.WaitGroup
+	for range min(len(pending), mathPoolSize()) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for p := range ch {
+				*p.f = *renderMath(p.key.tex, p.key.display)
+			}
+		}()
+	}
+	for _, p := range pending {
+		ch <- p
+	}
+	close(ch)
+	wg.Wait()
 }
 
 var (

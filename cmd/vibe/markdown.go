@@ -711,17 +711,21 @@ func parseMarkdown(source []byte, path, root string, current func() bool, caches
 			}
 		}
 	}()
-	// formula draws a formula, as the last parse did if it had it.
+	// formula draws a formula, as the last parse did if it had it. A new
+	// one is a placeholder filled after the walk, so many formulas draw at
+	// once rather than one after another.
+	var pending []mathRender
 	formula := func(tex string, display bool) *mathFormula {
 		key := mathKey{tex, display}
 		usedFormulas[key] = true
 		f, ok := c.formulas[key]
 		if !ok {
-			f = renderMath(tex, display)
+			f = &mathFormula{display: display}
 			if c.formulas == nil {
 				c.formulas = map[mathKey]*mathFormula{}
 			}
 			c.formulas[key] = f
+			pending = append(pending, mathRender{key: key, f: f})
 		}
 		return f
 	}
@@ -1289,6 +1293,7 @@ func parseMarkdown(source []byte, path, root string, current func() bool, caches
 		emit(b)
 	}
 	walk(tree, 0, 0, "", false, 0, 0)
+	renderMathPending(pending, current)
 	// A block without a place in the text, as a rule, is where the one
 	// before it is, so that the lines only go down.
 	line := skip

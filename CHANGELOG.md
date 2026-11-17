@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Notes with many formulas open faster: **Live Preview** typesets them several at a time.
+- The **branch switcher** draws only the rows in view, so typing into thousands of branches stays smooth.
+- **Source Control** history keeps its branch and tag badges without rebuilding them every frame.
+- **Source Control** no longer re-encodes every diff line each frame, so an idle window stays light.
+
 ## 0.2.4
 
 - **Source Control** lists only the repositories with changes, so a folder of many does not bury them.

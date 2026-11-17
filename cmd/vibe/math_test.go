@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/png"
 	"os"
 	"path/filepath"
@@ -218,5 +219,45 @@ func TestShotMath(t *testing.T) {
 	defer f.Close()
 	if err := png.Encode(f, img); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestMarkdownMathParallelFill: a cold parse of many unique formulas
+// draws them all through the engine pool, leaving no placeholder empty,
+// and draws each as a single render of the same TeX does.
+func TestMarkdownMathParallelFill(t *testing.T) {
+	var src strings.Builder
+	const n = 60
+	tex := make([]string, n)
+	for i := range n {
+		tex[i] = fmt.Sprintf(`\frac{x^{%d}}{1+\sqrt{%d}}`, i, i+1)
+		fmt.Fprintf(&src, "$$%s$$\n\n", tex[i])
+	}
+	blocks := parseMarkdown([]byte(src.String()), "", "", nil, &markdownCache{math: true})
+	drawn := 0
+	for _, b := range blocks {
+		if b.kind != markdownMathBlock {
+			continue
+		}
+		f := b.formula
+		if f == nil || f.err != "" || f.svg == nil || f.w <= 0 {
+			t.Fatalf("formula not drawn: %+v", f)
+		}
+		drawn++
+	}
+	if drawn != n {
+		t.Fatalf("drawn %d, want %d", drawn, n)
+	}
+	for i := 0; i < n; i += 17 {
+		want := renderMath(tex[i], true)
+		var got *mathFormula
+		for _, b := range blocks {
+			if b.kind == markdownMathBlock && markdownRunsText(b.runs) == tex[i] {
+				got = b.formula
+			}
+		}
+		if got == nil || got.w != want.w || got.ascent != want.ascent || got.depth != want.depth {
+			t.Errorf("%s: got %+v, want %+v", tex[i], got, want)
+		}
 	}
 }

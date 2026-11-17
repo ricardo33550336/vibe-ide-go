@@ -33,4 +33,8 @@ require (
 	honnef.co/go/tools v0.8.2 // indirect
 )
 
-replace github.com/egoist/mygo => github.com/sorrycc/mygo v0.4.9-0.20261115124625-8859ace8bfa6
+// Patched fork: Painter.RichText span cache (see PERF-REPORT.md, egoist/mygo#1976).
+// Base is sorrycc/mygo@8859ace8bfa6 plus the fix on ricardo33550336/mygo perf/richtext-span-cache.
+// To return to the unpatched fork, use:
+// replace github.com/egoist/mygo => github.com/sorrycc/mygo v0.4.9-0.20261115124625-8859ace8bfa6
+replace github.com/egoist/mygo => github.com/ricardo33550336/mygo v0.4.9-0.20261117163732-6e08d39555e2

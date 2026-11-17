@@ -58,6 +58,9 @@ type scmRow struct {
 	commit *git.Commit
 	at     int
 	more   bool
+	// badges are the commit's branches and tags, grouped, computed when the
+	// row is built so a frame does not clone and sort its refs again.
+	badges []refBadge
 	// dir is the folder of a folder's row in the tree, and name what it
 	// shows of it; depth is how deep a row of the tree is.
 	dir   string
@@ -219,7 +222,7 @@ func (a *gitContext) scmRows() []scmRow {
 		rows = append(rows, scmRow{group: groupCommits, header: true, count: len(h), key: "group:commits"})
 		if !s.collapsed[groupCommits] {
 			for i := range h {
-				rows = append(rows, scmRow{group: groupCommits, commit: &h[i], at: i, key: "commit:" + h[i].Hash})
+				rows = append(rows, scmRow{group: groupCommits, commit: &h[i], at: i, key: "commit:" + h[i].Hash, badges: refBadges(h[i].Refs)})
 				if s.openCommits[h[i].Hash] {
 					rows = a.commitFileRows(rows, &h[i], i)
 				}
@@ -1210,7 +1213,7 @@ func (a *gitContext) scmCommit(c *ui.Context, r scmRow, action *func()) {
 	g := a.git
 	unpushed := g.unpushed[cm.Hash]
 	head := g.status != nil && g.status.Head == cm.Hash
-	badges := refBadges(cm.Refs)
+	badges := r.badges
 	prs := a.prHeadsAt(cm.Hash)
 	// What the card says past its fields, which the row's description
 	// says too, for those who do not see the card.

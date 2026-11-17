@@ -30,6 +30,9 @@ type branchPicker struct {
 	results  []workspace.Match
 	shown    string // the query the results are of
 	stale    bool
+	// list virtualizes the results: a query can match hundreds of branches,
+	// and drawing them all rastered hundreds of rounded, shadowed rows a frame.
+	list ui.ListState
 }
 
 // branchNames are the names of branches, local and of remotes.
@@ -240,19 +243,28 @@ func (a *gitContext) branchPickerView(c *ui.Context) {
 				})
 				switch {
 				case len(choices) > 0:
-					ui.Scroll(c.Key("branch-results")).MaxHeight(380).Padding(6).Children(func() {
-						for i, ch := range choices {
-							// Without a query the branches are in two groups, each under
-							// a heading that no key reaches.
-							if group := b.groupOf(ch); group != "" && (i == 0 || b.groupOf(choices[i-1]) != group) {
-								ui.Text(c, group).FontSize(11.5).TextColor(p.faint).Padding(6, 10, 2, 10)
-							}
-							a.branchRow(c, ch, i)
-							if i == 0 && (ch.prompt || ch.create != "") && len(choices) > 1 {
-								ui.Box(c).Height(1).Background(p.border).Margin(4, 6)
-							}
+					b.list.Key = func(i int) any {
+						ch := choices[i]
+						if ch.prompt || ch.create != "" {
+							return "create"
 						}
-					})
+						return "branch:" + b.branches[b.results[ch.at].Index].Name
+					}
+					ui.List(c.Key("branch-results"), &b.list, len(choices), func(i int) {
+						ch := choices[i]
+						// Without a query the branches are in two groups, each under
+						// a heading that no key reaches.
+						if group := b.groupOf(ch); group != "" && (i == 0 || b.groupOf(choices[i-1]) != group) {
+							ui.Text(c, group).FontSize(11.5).TextColor(p.faint).Padding(6, 10, 2, 10)
+						}
+						a.branchRow(c, ch, i)
+						if i == 0 && (ch.prompt || ch.create != "") && len(choices) > 1 {
+							ui.Box(c).Height(1).Background(p.border).Margin(4, 6)
+						}
+					}).MaxHeight(380).Padding(6)
+					if b.moved && b.sel >= 0 && b.sel < len(choices) {
+						b.list.ScrollIntoView(b.sel)
+					}
 				case b.loading:
 					ui.Text(c, locales.BranchReading()).FontSize(13).TextColor(p.muted).Padding(12, 16)
 				default:
@@ -340,9 +352,6 @@ func (a *gitContext) branchRow(c *ui.Context, ch branchChoice, i int) {
 	row := ui.ButtonBase(c.Key(key)).Padding(5, 10).Gap(10).Radius(6).Justify(ui.Start).AlignItems(ui.Center).Label(label).Disabled(!a.git.canMutate())
 	if i != b.sel && row.Hovered() {
 		row.Background(p.hover)
-	}
-	if i == b.sel && b.moved {
-		row.ScrollIntoView()
 	}
 	if row.Clicked() {
 		a.app.post(func() { a.chooseBranch(ch) })
