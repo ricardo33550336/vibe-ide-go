@@ -12,27 +12,34 @@ import (
 )
 
 func TestRepositoryHeaderRowTogglesChanges(t *testing.T) {
-	hs, sub, parent := submoduleHarness(t)
+	hs, sub, _ := submoduleHarness(t)
 	a := hs.a
 	draft := "keep this module draft"
 	sub.git.message = draft
-	before := parent("rev-parse", "HEAD")
+	// A repository with changes takes rows. The module's content shows in
+	// its parent as well, so both are listed.
+	if err := os.WriteFile(filepath.Join(sub.git.repo.Root, "module.txt"), []byte("changed\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a.gitChanged()
+	settleRepositories(t, hs, 2)
 	if err := hs.tt.Click(locales.ScmSelectRepository(sub.label())); err != nil {
 		t.Fatal(err)
 	}
 	hs.settle()
-	if a.repositories.selected != sub.git.repo.Root || !sub.changesExpanded() {
-		t.Fatal("clicking the repository name must select its history and expand its changes")
+	if a.repositories.selected != sub.git.repo.Root || sub.changesExpanded() {
+		t.Fatal("clicking the repository name must select its history and collapse its changes")
+	}
+	if err := hs.tt.Click(locales.ScmToggleRepository(sub.label())); err != nil {
+		t.Fatal(err)
+	}
+	hs.settle()
+	if !sub.changesExpanded() || a.repositories.selected != sub.git.repo.Root {
+		t.Fatal("the disclosure must expand the changes of its repository")
 	}
 	hs.shot("submodules-selected-header")
-	if !sub.changesExpanded() || !hs.tt.HasText(locales.ScmCommitMessage()) || sub.git.message != draft || !hs.tt.HasText(locales.DiffNoChanges()) {
-		t.Fatalf("expanded clean repository lost its draft or clean state: %q", hs.tt.Texts())
-	}
-	// An expanded clean repository has no changes to commit.
-	hs.tt.Click(locales.CmdGitCommit())
-	hs.settle()
-	if parent("rev-parse", "HEAD") != before || sub.git.message != draft {
-		t.Fatal("clean commit button changed a repository or its draft")
+	if !sub.changesExpanded() || !hs.tt.HasText(locales.ScmCommitMessage()) || sub.git.message != draft || !hs.tt.HasText("module.txt") {
+		t.Fatalf("expanded repository lost its draft or its changes: %q", hs.tt.Texts())
 	}
 	if err := hs.tt.Click(locales.ScmToggleRepository(sub.label())); err != nil {
 		t.Fatal(err)
@@ -42,7 +49,7 @@ func TestRepositoryHeaderRowTogglesChanges(t *testing.T) {
 		t.Fatal("collapse changed the selected repository or its draft")
 	}
 	// A user's collapse choice survives subsequent Git status updates.
-	if err := os.WriteFile(filepath.Join(sub.git.repo.Root, "module.txt"), []byte("changed\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(sub.git.repo.Root, "module.txt"), []byte("changed again\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	a.gitChanged()
@@ -241,14 +248,18 @@ func TestRepositoryChangesFitContent(t *testing.T) {
 	if !ok || history.Y > 200 {
 		t.Fatalf("clean repositories left empty space above history: %v (%v)", history, ok)
 	}
-	if err := tt.Click(locales.ScmToggleRepository(sub.label())); err != nil {
+	if _, ok := tt.Find(locales.ScmToggleRepository(sub.label())); ok {
+		t.Fatal("a clean repository took rows in the changes list")
+	}
+	if err := os.WriteFile(filepath.Join(sub.git.repo.Root, "module.txt"), []byte("changed\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	hs.settle()
+	a.gitChanged()
+	settleRepositories(t, hs, 2)
 	input, ok := tt.Find(locales.ScmCommitMessage())
 	expanded, _ := tt.Find("COMMITS")
 	if !ok || expanded.Y <= input.Y+input.H || expanded.Y >= 450 {
-		t.Fatalf("expanded draft did not size the changes pane: input=%v, history=%v", input, expanded)
+		t.Fatalf("the changes of a repository did not size the pane: input=%v, history=%v", input, expanded)
 	}
 	for i := range 40 {
 		if err := os.WriteFile(filepath.Join(sub.git.repo.Root, fmt.Sprintf("new-%02d.txt", i)), []byte("new\n"), 0o644); err != nil {
@@ -365,6 +376,9 @@ func TestRepositoryChangesScrollContinuouslyAndPinHeaders(t *testing.T) {
 	settleRepositories(t, hs, 2)
 	// One wheel gesture moves the parent input out of view and leaves its
 	// repository header pinned, without entering a nested file-list scroller.
+	// Start at the top: a status that arrived last did not scroll the list.
+	hs.tt.Scroll(150, 240, 0, -4000)
+	hs.settle()
 	hs.tt.Scroll(150, 240, 0, 500)
 	hs.settle()
 	pinned, ok := hs.tt.Find(locales.ScmSelectRepository(a.rootRepository().label()))
@@ -460,10 +474,6 @@ func repositoryGroupScrollFixture(t *testing.T) (*harness, *gitContext) {
 	gitIn(t, root, "add", "--", ":(glob)staged-*.txt")
 	a.gitChanged()
 	settleRepositories(t, hs, 2)
-	if err := hs.tt.Click(locales.ScmToggleRepository(a.rootRepository().label())); err != nil {
-		t.Fatal(err)
-	}
-	hs.settle()
 	return hs, sub
 }
 
@@ -549,9 +559,7 @@ func TestRepositoryPinnedGroupStopsAtNextRepository(t *testing.T) {
 	}
 	a.gitChanged()
 	settleRepositories(t, hs, 2)
-	if err := hs.tt.Click(locales.ScmToggleRepository(a.rootRepository().label())); err != nil {
-		t.Fatal(err)
-	}
+	hs.tt.Scroll(150, 240, 0, -4000)
 	hs.settle()
 	hs.tt.Scroll(150, 240, 0, 500)
 	hs.settle()

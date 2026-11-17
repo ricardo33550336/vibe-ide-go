@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Source Control** lists only the repositories with changes, so a folder of many does not bury them.
+- A **Search** button beside the Explorer and Source Control switches the sidebar to search.
+
 ## 0.2.3
 
 - **Reveal in File Explorer** shows a file or folder of a WSL folder, through the share Windows mounts it on.

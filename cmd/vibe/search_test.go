@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui"
+	"vibe/locales"
 )
 
 // settleSearch draws frames until the search under way, or waiting to
@@ -472,5 +473,34 @@ func TestSearchStopsAtMost(t *testing.T) {
 	}
 	if !s.stopped || s.count != maxSearchMatches || n != maxSearchMatches {
 		t.Errorf("stopped %v with %d matches, %d in the files", s.stopped, s.count, n)
+	}
+}
+
+// The sidebar's switches are the folder's files, its changes and the search
+// in them, as the activity bar's are.
+func TestSearchSwitchShowsSearch(t *testing.T) {
+	hs := newHarness(t, true)
+	a, tt := hs.a, hs.tt
+	hs.settle()
+	if err := tt.Click(a.withKey(locales.SidebarSearch(), "view.search")); err != nil {
+		t.Fatal(err)
+	}
+	hs.settle()
+	if a.window.SidebarView != "search" || a.window.SidebarClosed || !tt.HasText(locales.SidebarTitleSearch()) {
+		t.Fatalf("the search switch showed %q, closed %v", a.window.SidebarView, a.window.SidebarClosed)
+	}
+	if err := tt.Click(a.withKey(locales.SidebarScm(), "view.scm")); err != nil {
+		t.Fatal(err)
+	}
+	hs.settle()
+	if a.window.SidebarView != "git" {
+		t.Fatalf("the source control switch showed %q", a.window.SidebarView)
+	}
+	if err := tt.Click(a.withKey(locales.SidebarExplorer(), "view.explorer")); err != nil {
+		t.Fatal(err)
+	}
+	hs.settle()
+	if a.window.SidebarView != "" || !tt.HasText(locales.SidebarTitleExplorer()) {
+		t.Fatalf("the explorer switch showed %q", a.window.SidebarView)
 	}
 }

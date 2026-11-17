@@ -42,6 +42,12 @@ func (a *gitContext) changesExpanded() bool {
 func (a *app) repositoryChangeRows(contexts []*gitContext) []repositoryChangeRow {
 	var rows []repositoryChangeRow
 	for _, repo := range contexts {
+		// A repository with nothing to commit takes no rows: in a folder of
+		// many, they would only be scrolled past to reach the ones with
+		// changes.
+		if !repo.hasCommitControls() {
+			continue
+		}
 		root := repo.git.repo.Root
 		rows = append(rows, repositoryChangeRow{repo: repo, kind: repositoryHeader, key: root + ":header"})
 		if !repo.changesExpanded() {
@@ -110,6 +116,12 @@ func (a *app) scmView(c *ui.Context) {
 func (a *app) repositoryChanges(c *ui.Context, contexts []*gitContext) {
 	rows := a.repositoryChangeRows(contexts)
 	state := &a.repositories
+	if len(rows) == 0 {
+		// Every repository here is clean: nothing to list, and no row for
+		// the keyboard to keep.
+		state.row, state.cursor = -1, ""
+		ui.Text(c, locales.DiffNoChanges()).FontSize(12).TextColor(a.pal.muted).Padding(6, 14, 12, 14)
+	}
 	if state.cursor != "" {
 		state.row = -1
 		for i, row := range rows {

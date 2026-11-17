@@ -23,9 +23,9 @@ func (a *app) sidebar(c *ui.Context) {
 	p := a.pal
 	sb := ui.Column(c).Fill().Background(p.chrome)
 	hovered := sb.Hovered()
-	// The switches are the folder's files and its changes to commit, as
-	// vibe-ide's right panel's are. The other views stay reachable by
-	// command, though no switch offers them.
+	// The switches are the folder's files, its changes to commit and the
+	// search in them, as VS Code's activity bar's are. The other views stay
+	// reachable by command, though no switch offers them.
 	view := a.window.SidebarView
 	if a.root == "" || view == "sessions" && !a.hasSessions() {
 		view = ""
@@ -38,8 +38,9 @@ func (a *app) sidebar(c *ui.Context) {
 	sb.Children(func() {
 		ui.Row(c).Height(34).Padding(0, 6, 0, 8).Gap(2).AlignItems(ui.Center).Children(func() {
 			if a.root != "" {
-				a.sidebarSwitch(c, iconFiles, a.withKey(locales.SidebarExplorer(), "view.explorer"), !scm, 0, a.showExplorer)
+				a.sidebarSwitch(c, iconFiles, a.withKey(locales.SidebarExplorer(), "view.explorer"), !scm && !search, 0, a.showExplorer)
 				a.sidebarSwitch(c, iconBranch, a.withKey(locales.SidebarScm(), "view.scm"), scm, a.changeCount(), a.showSourceControl)
+				a.sidebarSwitch(c, iconSearch, a.withKey(locales.SidebarSearch(), "view.search"), search, 0, func() { a.showSearch(false) })
 			}
 			title, short, actions := locales.SidebarTitleExplorer(), "", 0
 			switch {
@@ -67,7 +68,7 @@ func (a *app) sidebar(c *ui.Context) {
 			// take the rest of the row.
 			room := a.window.SidebarWidth - 1 - 14 - 6 - float32(actions)*28
 			if a.root != "" {
-				n := float32(2)
+				n := float32(3)
 				room -= n*26 + (n-1)*3
 			}
 			size, spacing := p.titleLook(11, titleSpacing)
