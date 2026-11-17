@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.5
 
 - Notes with many formulas open faster: **Live Preview** typesets them several at a time.
 - The **branch switcher** draws only the rows in view, so typing into thousands of branches stays smooth.
